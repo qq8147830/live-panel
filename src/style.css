@@ -1,0 +1,222 @@
+/* ============================================
+   AI数字人直播控制面板 - 全局样式
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #000000;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ============================================
+   滚动条样式
+   ============================================ */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   动画
+   ============================================ */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* ============================================
+   过渡效果
+   ============================================ */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.transition-colors {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.transition-opacity {
+  transition: opacity 0.2s ease;
+}
+
+/* ============================================
+   响应式设计
+   ============================================ */
+
+/* 大屏幕 (> 1280px) */
+@media (min-width: 1280px) {
+  html, body {
+    font-size: 14px;
+  }
+}
+
+/* 中等屏幕 (1024px - 1279px) */
+@media (max-width: 1279px) {
+  /* 保持三栏布局但缩小宽度 */
+}
+
+/* 平板横屏 (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  main {
+    flex-direction: column;
+  }
+  
+  aside,
+  section {
+    width: 100% !important;
+    min-height: 300px;
+  }
+}
+
+/* 平板竖屏/手机横屏 (480px - 767px) */
+@media (max-width: 767px) {
+  main {
+    flex-direction: column;
+  }
+  
+  aside,
+  section {
+    width: 100% !important;
+    min-height: 250px;
+  }
+  
+  /* 顶部导航栏简化 */
+  header {
+    padding: 0.75rem;
+  }
+  
+  /* 隐藏非必要元素 */
+  aside > div:last-child {
+    display: none;
+  }
+}
+
+/* 手机竖屏 (< 480px) */
+@media (max-width: 479px) {
+  main {
+    flex-direction: column;
+  }
+  
+  aside,
+  section {
+    width: 100% !important;
+    min-height: 200px;
+  }
+  
+  /* 顶部导航栏 */
+  header {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    height: auto;
+  }
+  
+  header > div {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* 底部输入区域 */
+  section > div:last-child {
+    height: auto;
+    padding: 0.75rem;
+  }
+  
+  input[type="text"] {
+    font-size: 12px;
+  }
+  
+  /* 按钮 */
+  .w-10 {
+    width: 2.5rem;
+  }
+  
+  .h-10 {
+    height: 2.5rem;
+  }
+}
+
+/* ============================================
+   减少动画模式（无障碍）
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-pulse,
+  .animate-fade-in {
+    animation: none;
+  }
+}
+
+/* ============================================
+   打印样式
+   ============================================ */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+}

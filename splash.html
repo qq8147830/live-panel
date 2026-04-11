@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Weiming AI - 智能数字人" />
+  <meta name="theme-color" content="#0a0e27">
+  <!-- 🦍 大猩猩emoji favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>CY Ai BotClaw - 长右灵🦍</title>
+  <link rel="stylesheet" href="splash.css">
+</head>
+<body>
+  <!-- ========================================
+       登录弹层
+       ======================================== -->
+  <div id="login-modal" class="login-modal">
+    <div class="login-overlay"></div>
+    <div class="login-container">
+      <!-- 顶部按钮栏：回官网 + 关闭登录 -->
+      <div class="top-button-bar">
+        <!-- 回官网按钮 -->
+        <a href="index.html" class="home-btn" target="_self" aria-label="返回首页">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span class="home-btn-tooltip">返回首页</span>
+        </a>
+        
+        <!-- 关闭按钮 -->
+        <button id="close-login" class="close-btn" type="button" aria-label="关闭登录">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span class="close-btn-tooltip">关闭登录</span>
+        </button>
+      </div>
+      
+      <!-- 弹层内容 -->
+      <div class="login-content">
+        <!-- 主文案 -->
+        <h2 class="login-title">
+          CY BotClaw Agent &nbsp;&nbsp;🦍 长右灵智能体 </span><br>
+          <h2 class="login-title-sub">  
+             AgentTeam、BotClaw' God Team  🐾<br>
+          ...
+        </h2>
+        
+        
+
+        <!-- 手机号输入 -->
+<div class="phone-input-wrapper">
+  <div class="country-code">
+    <span>+86</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2"/>
+    </svg>
+  </div>
+  <input 
+    type="tel" 
+    class="phone-input" 
+    placeholder="请在此处输入手机号"
+    maxlength="11"
+  >
+  <!-- 确认按钮箭头 -->
+  <button id="confirm-phone" class="confirm-phone-btn" type="button" aria-label="确认手机号" disabled>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+</div>
+
+<!-- 短信验证码输入区域（初始隐藏） -->
+<div id="verification-code-container" class="verification-code-container" style="display: none;">
+  <div class="verification-code-wrapper">
+    <div class="verification-code-label">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="9" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 9V5a2 2 0 012-2h6a2 2 0 012 2v4" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="12" cy="15" r="1" fill="currentColor"/>
+      </svg>
+      <span>短信验证码</span>
+    </div>
+    
+    <div class="verification-code-input-wrapper">
+      <input 
+        type="tel" 
+        id="verification-code-input"
+        class="verification-code-input" 
+        placeholder="请输入4位验证码"
+        maxlength="4"
+      >
+      <!-- 验证码确认按钮 -->
+      <button id="verify-code-btn" class="verify-code-btn" type="button" aria-label="验证验证码" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>提交
+      </button>
+    </div>
+    
+    <!-- 验证码发送状态 -->
+    <div class="verification-status">
+      <span id="verification-status-text">已发送至 <span id="phone-number-display"></span>，5分钟内有效</span>
+      <button id="resend-code-btn" class="resend-code-btn" type="button" disabled>
+        <span id="resend-timer">60s</span>后重发
+      </button>
+    </div>
+  </div>
+</div>
+
+        <!-- 快捷登录功能区 -->
+        <div class="quick-icons">
+          <button class="quick-btn wechat" type="button" aria-label="微信登录" id="wechat-login-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path fill="#07C160" d="M8.5 11a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm5 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+              <path fill="#07C160" d="M12 2C6.477 2 2 6.145 2 11.243c0 2.936 1.444 5.544 3.7 7.254L4.35 21l3.308-2.168c1.044.217 2.145.338 3.342.338 5.523 0 10-4.145 10-9.243S17.523 2 12 2z"/>
+            </svg>
+            <span class="quick-btn-tooltip wechat-tooltip">微信扫码登录</span>
+          </button>
+          <button class="quick-btn email" type="button" aria-label="邮箱登录" id="email-login-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="4" width="20" height="16" rx="2" stroke="#00E676" stroke-width="1.5"/>
+              <path d="M2 6l10 7 10-7" stroke="#00E676" stroke-width="1.5"/>
+            </svg>
+            <span class="quick-btn-tooltip email-tooltip">邮箱验证登录</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       微信扫码登录界面（初始隐藏）
+       ======================================== -->
+  <div id="wechat-login-modal" class="wechat-login-modal" style="display: none;">
+    <div class="wechat-login-overlay"></div>
+    <div class="wechat-login-container">
+      <!-- 关闭按钮 -->
+      <button class="wechat-close-btn" id="wechat-close-btn" type="button" aria-label="关闭微信登录">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </button>
+      
+      <!-- 微信登录内容 -->
+      <div class="wechat-login-content">
+        <!-- 标题 -->
+        <div class="wechat-login-title">
+          <!-- <div class="wechat-logo">
+            <svg width="32" height="32" viewBox="0 0 24 24">
+              <path fill="#07C160" d="M8.5 11a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm5 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+              <path fill="#07C160" d="M12 2C6.477 2 2 6.145 2 11.243c0 2.936 1.444 5.544 3.7 7.254L4.35 21l3.308-2.168c1.044.217 2.145.338 3.342.338 5.523 0 10-4.145 10-9.243S17.523 2 12 2z"/>
+            </svg>
+          </div> -->
+          <p class="wechat-login-subtitle">请使用微信扫描下方二维码完成登录</p>
+        </div>
+        
+        <!-- 二维码区域 -->
+        <div class="wechat-qrcode-container">
+          <div class="wechat-qrcode-wrapper">
+            <!-- 二维码占位图（实际应动态生成） -->
+            <div class="wechat-qrcode-placeholder">
+              <div class="qrcode-border"></div>
+              <div class="qrcode-grid">
+                <!-- 模拟二维码网格 -->
+                <div class="qrcode-row"></div>
+                <div class="qrcode-row"></div>
+                <div class="qrcode-row"></div>
+              </div>
+              <div class="qrcode-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path fill="#07C160" d="M8.5 11a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm5 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                  <path fill="#07C160" d="M12 2C6.477 2 2 6.145 2 11.243c0 2.936 1.444 5.544 3.7 7.254L4.35 21l3.308-2.168c1.044.217 2.145.338 3.342.338 5.523 0 10-4.145 10-9.243S17.523 2 12 2z"/>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- 扫描动画 -->
+            <div class="qrcode-scan-line"></div>
+          </div>
+          
+          <!-- 刷新二维码 -->
+          <button class="refresh-qrcode-btn" id="refresh-qrcode-btn" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4A8 8 0 0 0 4 12a8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A6 6 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
+            </svg>
+            <span>刷新二维码</span>
+          </button>
+        </div>
+        
+        <!-- 状态提示 -->
+        <div class="wechat-status">
+          <div class="status-loading" id="wechat-loading-status">
+            <div class="loading-spinner"></div>
+            <span>等待扫码...</span>
+          </div>
+          <div class="status-success" id="wechat-success-status" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#4CAF50" stroke-width="2"/>
+              <path d="M8 12l2 2 4-4" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>扫码成功！正在登录...</span>
+          </div>
+        </div>
+        
+        <!-- 操作指引 -->
+        <div class="wechat-instructions">
+          <h4>操作指引</h4>
+          <ol>
+            <li>打开手机微信，点击右上角"+"号</li>
+            <li>选择"扫一扫"，对准上方二维码</li>
+            <li>在手机上确认登录信息</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       邮箱登录弹窗（初始隐藏）
+       ======================================== -->
+  <div id="email-login-modal" class="email-login-modal" style="display: none;">
+    <div class="email-login-overlay"></div>
+    <div class="email-login-container">
+      <!-- 关闭按钮 -->
+      <button class="email-close-btn" id="email-close-btn" type="button" aria-label="关闭邮箱登录">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </button>
+      
+      <!-- 邮箱登录内容 -->
+      <div class="email-login-content">
+        <!-- 标题 -->
+        <div class="email-login-title">
+          <div class="email-logo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="4" width="20" height="16" rx="2" stroke="#00E676" stroke-width="2"/>
+              <path d="M2 6l10 7 10-7" stroke="#00E676" stroke-width="2"/>
+            </svg>
+          </div>
+          <h3>邮箱验证登录</h3>
+          <p class="email-login-subtitle">请输入您的邮箱地址，我们将发送验证码</p>
+        </div>
+        
+        <!-- 邮箱输入区域 -->
+        <div class="email-input-section">
+          <div class="email-input-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="email-input-icon">
+              <rect x="2" y="4" width="20" height="16" rx="2" stroke="#00E676" stroke-width="1.5"/>
+              <path d="M2 6l10 7 10-7" stroke="#00E676" stroke-width="1.5"/>
+            </svg>
+            <input 
+              type="email" 
+              id="email-input"
+              class="email-input" 
+              placeholder="请输入您的邮箱地址"
+            >
+          </div>
+          <div class="email-error" id="email-error" style="display: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#ff6b6b" stroke-width="1.5"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke="#ff6b6b" stroke-width="1.5"/>
+              <circle cx="12" cy="16" r="0.5" fill="#ff6b6b"/>
+            </svg>
+            <span>请输入有效的邮箱地址</span>
+          </div>
+        </div>
+        
+        <!-- 验证码区域（初始隐藏） -->
+        <div class="email-code-section" id="email-code-section" style="display: none;">
+          <div class="email-code-input-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="email-code-icon">
+              <rect x="3" y="9" width="18" height="12" rx="2" stroke="#00E676" stroke-width="1.5"/>
+              <path d="M7 9V5a2 2 0 012-2h6a2 2 0 012 2v4" stroke="#00E676" stroke-width="1.5"/>
+              <circle cx="12" cy="15" r="1" fill="#00E676"/>
+            </svg>
+            <input 
+              type="text" 
+              id="email-code-input"
+              class="email-code-input" 
+              placeholder="请输入6位验证码"
+              maxlength="6"
+            >
+            <button class="resend-email-code-btn" id="resend-email-code-btn" type="button" disabled>
+              <span id="email-resend-timer">60s</span>后重发
+            </button>
+          </div>
+          <div class="email-code-error" id="email-code-error" style="display: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#ff6b6b" stroke-width="1.5"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke="#ff6b6b" stroke-width="1.5"/>
+              <circle cx="12" cy="16" r="0.5" fill="#ff6b6b"/>
+            </svg>
+            <span>验证码无效，请重新输入</span>
+          </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="email-action-buttons">
+          <button class="email-send-btn" id="email-send-btn" type="button">
+            发送验证码
+          </button>
+          <button class="email-verify-btn" id="email-verify-btn" type="button" disabled style="display: none;">
+            验证并登录
+          </button>
+        </div>
+        
+        <!-- 状态提示 -->
+        <div class="email-status">
+          <div class="email-sent-status" id="email-sent-status" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#4CAF50" stroke-width="1.5"/>
+              <path d="M8 12l2 2 4-4" stroke="#4CAF50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>验证码已发送至 <span id="email-display"></span></span>
+          </div>
+          <div class="email-success-status" id="email-success-status" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#4CAF50" stroke-width="1.5"/>
+              <path d="M8 12l2 2 4-4" stroke="#4CAF50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>登录成功！正在跳转...</span>
+          </div>
+        </div>
+        
+        <!-- 隐私提示 -->
+        <div class="email-privacy-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="rgba(255, 255, 255, 0.4)" stroke-width="1.5"/>
+            <path d="M12 8v4M12 16h.01" stroke="rgba(255, 255, 255, 0.4)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span>我们承诺保护您的隐私，邮箱仅用于验证身份</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+   <!-- ========================================
+       回首页唤起按钮
+       ======================================== -->
+  <a href="index.html" id="floating-home-btn" style="
+    position: fixed;
+    top: 545px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    z-index: 99999;
+    background: linear-gradient(135deg, #667eea 0%, #33dc66 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.6);
+    animation: floatPulse 2s ease-in-out infinite;
+    text-decoration: none;
+  " aria-label="返回首页">
+    <span style="font-size: 12px; color: white;">← 首页</span>
+  </a>
+
+
+  <!-- ========================================
+       悬浮唤起按钮 - Hai BotClaw 小宠物 (独立实现)
+       ======================================== -->
+  <div id="floating-hai-btn" style="
+    position: fixed;
+    top: 600px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    z-index: 99999;
+    background: linear-gradient(135deg, #667eea 0%, #33dc66 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.6);
+    animation: floatPulse 2s ease-in-out infinite;
+  " onclick="toggleLoginModal()">
+    <span style="font-size: 12px; color: white;">✦ 登录</span>
+  </div>
+
+  <!-- ========================================
+       登录状态动态显示区域
+       ======================================== -->
+  <div id="login-status-container" style="
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    z-index: 99998;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: rgba(10, 14, 39, 0.9);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 30px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  ">
+    <!-- 未登录状态：登录按钮 -->
+    <div id="login-btn" class="login-btn" onclick="showLoginModal()" style="
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: transparent;
+      border: 0.5px solid #5c5e5e;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    " onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size: 16px;">👤</span>
+      <span style="font-size: 16px; color: #9cc9f2; font-weight: 500;">登录</span>
+    </div>
+    
+    <!-- 已登录状态：用户信息 -->
+    <div id="logged-in-status" class="logged-in-status" style="display: none; align-items: center; gap: 12px;">
+      <!-- 圆形SVG头像 -->
+      <div class="user-avatar" style="
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #445dcc 0%, #1b7811 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+        overflow: hidden;
+        flex-shrink: 0;
+      ">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <!-- 卡通人物头像 -->
+          <circle cx="12" cy="8" r="4" fill="#ffffff"/>
+          <path d="M12 14c-4 0-7 2-7 4.5V20h14v-1.5c0-2.5-3-4.5-7-4.5z" fill="#ffffff"/>
+          <!-- 眼镜 -->
+          <circle cx="10" cy="7.5" r="1" fill="#1E88E5"/>
+          <circle cx="14" cy="7.5" r="1" fill="#1E88E5"/>
+          <path d="M9 7.5h1M13 7.5h1" stroke="#1E88E5" stroke-width="0.5"/>
+        </svg>
+      </div>
+      
+      <!-- 脱敏手机号 -->
+      <span id="masked-phone" class="masked-phone" style="
+        font-size: 14px;
+        color: #ffffff;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      ">189****2806</span>
+      
+      <!-- 下拉菜单触发按钮 -->
+      <button id="dropdown-trigger" onclick="toggleDropdown(event)" style="
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: transparent;
+        color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        padding: 0;
+      " onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='#667eea'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,0.3)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+      
+      <!-- 下拉菜单 -->
+      <div id="dropdown-menu" class="dropdown-menu" style="
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        min-width: 140px;
+        background: rgba(10, 14, 39, 0.98);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 12px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        z-index: 99999;
+      ">
+        <button onclick="handleMenuItem('profile')" style="
+          width: 100%;
+          padding: 12px 16px;
+          border: none;
+          background: transparent;
+          color: #ffffff;
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        " onmouseover="this.style.background='rgba(102, 126, 234, 0.2)'" onmouseout="this.style.background='transparent'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          账户资料
+        </button>
+        <button onclick="handleMenuItem('settings')" style="
+          width: 100%;
+          padding: 12px 16px;
+          border: none;
+          background: transparent;
+          color: #ffffff;
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        " onmouseover="this.style.background='rgba(102, 126, 234, 0.2)'" onmouseout="this.style.background='transparent'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          设置
+        </button>
+        <div style="height: 1px; background: rgba(102, 126, 234, 0.2); margin: 4px 12px;"></div>
+        <button onclick="handleMenuItem('logout')" style="
+          width: 100%;
+          padding: 12px 16px;
+          border: none;
+          background: transparent;
+          color: #ff6b6b;
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        " onmouseover="this.style.background='rgba(255, 107, 107, 0.15)'" onmouseout="this.style.background='transparent'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          退出
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div id="hai-debug-label" style="
+    position: fixed;
+    top: 110px;
+    right: 10px;
+    z-index: 99999;
+    background: #ff5722;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  " onclick="toggleLoginModal()">登录</div> -->
+
+  <!-- ========================================
+       启动动画过渡页
+       ======================================== -->
+  <div id="splash-screen" class="splash-screen">
+    <!-- 背景层 -->
+    <div class="splash-bg">
+      <div class="bg-gradient"></div>
+      <div class="bg-particles"></div>
+      <div class="bg-grid"></div>
+    </div>
+
+    <!-- 主要内容 -->
+    <div class="splash-content">
+      <!-- Logo 动画 -->
+      <div class="logo-container">
+        <div class="logo-ring"></div>
+        <div class="logo-ring delay-1"></div>
+        <div class="logo-ring delay-2"></div>
+        <a href="index.html" class="logo" aria-label="返回 HaiDong 首页">
+          <span class="logo-text">🦍</span>
+        </a>
+      </div>
+
+      <!-- 标题文字 -->
+      <h1 class="title">
+        <span class="title-main">Hai AI BotClow</span>
+        <span class="title-sub"> 长右灵🦞AI智能体 </span>
+      </h1>
+
+      <!-- 加载动画 -->
+      <div class="loader-container">
+        <div class="loader">
+          <div class="loader-bar"></div>
+        </div>
+        <span class="loader-text">Loading...</span>
+      </div>
+
+      <!-- 进入按钮 -->
+      <button id="enter-btn" class="enter-btn" type="button">
+        <span class="btn-text">Open AiBot Dashboard</span>
+        <span class="btn-arrow">→</span>
+      </button>
+    </div>
+
+    <!-- 版本信息 -->
+    <div class="version-info">
+      <span>v2.0.0</span>
+      <span class="separator">|</span>
+      <span>CY AI BotClaw Avatar Studio Copyright ©  BY HaiDong 2026
+        
+      </span>
+    </div>
+  </div>
+
+  <!-- 主项目容器（初始隐藏） -->
+  <div id="main-app" class="main-app" style="display: none;"></div>
+
+  <script src="splash.js"></script>
+</body>
+</html>
