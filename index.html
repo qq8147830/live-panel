@@ -91,6 +91,45 @@
     .nav-link.active::after {
       width: 100%;
     }
+
+    /* 业务领域手风琴样式 */
+    .service-accordion-btn {
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(52, 216, 241, 0.12), transparent 45%),
+        radial-gradient(circle at 90% 100%, rgba(236, 72, 153, 0.12), transparent 40%),
+        rgba(18, 18, 18, 0.65);
+      backdrop-filter: blur(8px);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .service-accordion-btn:hover {
+      border-color: rgba(52, 216, 241, 0.45);
+      box-shadow: 0 0 18px rgba(52, 216, 241, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .service-accordion-btn[aria-expanded="true"] {
+      border-color: rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 24px rgba(59, 130, 246, 0.2);
+    }
+
+    .service-title {
+      background: linear-gradient(90deg, #7dd3fc 0%, #60a5fa 40%, #a78bfa 70%, #f472b6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 12px rgba(96, 165, 250, 0.15);
+    }
+
+    .service-accordion-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .service-accordion-btn[aria-expanded="true"] i {
+      transform: rotate(180deg);
+    }
     
     /* 渐变Logo样式 */
     .gradient-logo {
@@ -481,9 +520,10 @@
         </div>
       </a>
       
-      <!-- 桌面端导航菜单 -->
+      <!-- 桌面端顶部导航菜单 -->
       <div class="nav-menu hidden md:flex items-center space-x-8">
         <a href="#capabilities" class="nav-link text-light/90 hover:text-white font-medium">AGENT能力</a>
+        <a href="#services" class="nav-link text-light/90 hover:text-white font-medium">业务领域</a>
         <a href="#moments" class="nav-link text-light/90 hover:text-white font-medium">长右🦞公社</a>
                 <a href="#guide" class="nav-link text-light/90 hover:text-white font-medium">AI 指南</a>
 
@@ -491,7 +531,7 @@
         <a href="#about" class="nav-link text-light/90 hover:text-white font-medium">AboutCY</a>
       </div>
       
-      <!-- 移动端菜单按钮 -->
+      <!-- 移动端顶部菜单按钮 -->
       <button id="mobileMenuBtn" class="mobile-menu-btn text-light/90 hover:text-white" type="button" title="切换导航菜单">
         <i class="fa-solid fa-bars text-2xl"></i>
       </button>
@@ -501,6 +541,7 @@
     <div id="mobileMenu" class="nav-menu md:hidden">
       <div class="flex flex-col space-y-4 py-4">
         <a href="#capabilities" class="nav-link text-light/90 hover:text-white font-medium py-2">AGENT能力</a>
+        <a href="#services" class="nav-link text-light/90 hover:text-white font-medium py-2">业务领域</a>
         <a href="#moments" class="nav-link text-light/90 hover:text-white font-medium py-2">长右🦞公社</a>
         <a href="#guide" class="nav-link text-light/90 hover:text-white font-medium py-2">AI指南</a>
         <a href="#worklog" class="nav-link text-light/90 hover:text-white font-medium py-2">WORK LOG</a>
@@ -708,6 +749,128 @@
     </div>
   </section>
 
+  <!-- 业务领域模块 SERVICES -->
+  <section id="services" class="mb-24">
+    <h2 class="text-3xl font-bold mb-12">SERVICES<br>业务领域</h2>
+    <p class="text-lg mb-10 max-w-3xl">
+      为企业提供全方位的 AI 技术服务与解决方案，覆盖从 AI 产研到系统交付与培训赋能 🐾
+    </p>
+
+    <div class="space-y-4 max-w-4xl">
+      <div class="card-hover rounded-lg border border-white/10">
+        <button type="button" class="service-accordion-btn w-full flex items-center justify-between p-5 text-left" aria-expanded="true" data-accordion-target="service-ai-rd">
+          <span class="service-title text-lg font-bold">AI 产研</span>
+          <i class="fa-solid fa-chevron-down text-light/70"></i>
+        </button>
+        <div id="service-ai-rd" class="service-accordion-panel p-5 pt-0">
+          <p class="text-sm text-light/70 mb-5 mt-5">为企业提供定制化 AI 应用解决方案，包括 CyAiClaw 独家智能系统、数据分析平台、自动化流程工具等。</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-brain text-xl mb-3 text-cyan-400"></i>
+              <h3 class="text-lg font-bold mb-1">CyAiClaw 独家智能系统</h3>
+              <p class="text-sm text-light/70">以可运维的智能系统为核心，提供任务路由、技能工程、记忆与回放能力，支持企业场景落地。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-database text-xl mb-3 text-purple-400"></i>
+              <h3 class="text-lg font-bold mb-1">数据分析平台</h3>
+              <p class="text-sm text-light/70">面向企业业务的数据加工、指标体系与分析链路，帮助团队把数据变成可执行决策。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-wand-magic-sparkles text-xl mb-3 text-pink-400"></i>
+              <h3 class="text-lg font-bold mb-1">自动化流程工具</h3>
+              <p class="text-sm text-light/70">把重复流程变成自动化工作流：从触发、编排到执行与校验，让效率提升可持续。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-screwdriver-wrench text-xl mb-3 text-blue-400"></i>
+              <h3 class="text-lg font-bold mb-1">定制私有 Skills</h3>
+              <p class="text-sm text-light/70">基于个人/企业的业务流程设计专属技能包，沉淀组织知识，形成可复用、可升级的 AI 能力资产。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-shrimp text-xl mb-3 text-orange-400"></i>
+              <h3 class="text-lg font-bold mb-1">安装龙虾（OpenClaw）</h3>
+              <p class="text-sm text-light/70">提供 OpenClaw 一键安装、环境配置与上线验证，帮助个人/团队快速拥有可运行的 AI龙虾 助手。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-gem text-xl mb-3 text-violet-400"></i>
+              <h3 class="text-lg font-bold mb-1">安装 Hermes-Agent（爱玛仕）</h3>
+              <p class="text-sm text-light/70">支持 Hermes-Agent 的部署接入与能力初始化，打通多智能体协作链路，提升复杂任务执行效率。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-hover rounded-lg border border-white/10">
+        <button type="button" class="service-accordion-btn w-full flex items-center justify-between p-5 text-left" aria-expanded="false" data-accordion-target="service-tech">
+          <span class="service-title text-lg font-bold">技术服务</span>
+          <i class="fa-solid fa-chevron-down text-light/70"></i>
+        </button>
+        <div id="service-tech" class="service-accordion-panel p-5 pt-0" hidden>
+          <p class="text-sm text-light/70 mb-5 mt-5">提供专业的技术咨询与实施服务，包括系统集成、数据处理、云服务部署等。</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-plug text-xl mb-3 text-indigo-400"></i>
+              <h3 class="text-lg font-bold mb-1">系统集成</h3>
+              <p class="text-sm text-light/70">对接企业现有系统与数据源，打通身份、权限与业务接口，确保端到端可用。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-server text-xl mb-3 text-yellow-400"></i>
+              <h3 class="text-lg font-bold mb-1">数据处理</h3>
+              <p class="text-sm text-light/70">清洗、治理、标注与质量评估，构建稳定的数据管道，支撑模型与业务迭代。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-cloud-arrow-up text-xl mb-3 text-teal-400"></i>
+              <h3 class="text-lg font-bold mb-1">云服务部署与运维</h3>
+              <p class="text-sm text-light/70">从环境搭建到监控告警与故障恢复，提供稳定运行所需的工程化保障。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-hover rounded-lg border border-white/10">
+        <button type="button" class="service-accordion-btn w-full flex items-center justify-between p-5 text-left" aria-expanded="false" data-accordion-target="service-training">
+          <span class="service-title text-lg font-bold">企业AI培训</span>
+          <i class="fa-solid fa-chevron-down text-light/70"></i>
+        </button>
+        <div id="service-training" class="service-accordion-panel p-5 pt-0" hidden>
+          <p class="text-sm text-light/70 mb-5 mt-5">开展 AI 技术培训课程，帮助企业员工掌握 AI 工具与方法，提升团队数字化能力，赋能企业数字化转型。</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-chalkboard-user text-xl mb-3 text-cyan-400"></i>
+              <h3 class="text-lg font-bold mb-1">课程体系与方法论</h3>
+              <p class="text-sm text-light/70">面向业务场景的 AI 能力建设：从工具到工作流，从提示词到评测与复盘。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-clipboard-check text-xl mb-3 text-purple-400"></i>
+              <h3 class="text-lg font-bold mb-1">工作坊 / 内训交付</h3>
+              <p class="text-sm text-light/70">通过案例演练、共创产出与现场指导，让企业员工把能力真正用起来。</p>
+            </div>
+            <div class="card-hover p-6 rounded-lg">
+              <i class="fa-solid fa-chart-line text-xl mb-3 text-pink-400"></i>
+              <h3 class="text-lg font-bold mb-1">落地评估与持续赋能</h3>
+              <p class="text-sm text-light/70">以效果指标与复盘机制驱动迭代，持续提升团队数字化转型速度与质量。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card-hover p-6 rounded-lg mt-10 max-w-4xl">
+      <h3 class="text-lg font-bold mb-2">合作方式：评估 - 方案 - 交付 - 验收</h3>
+      <p class="text-sm text-light/70 mb-4">
+        先对齐目标与约束，再交付可验证的最小闭环；后续通过观测数据驱动迭代。
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href="#worklog" class="tech-button px-6 py-2 rounded-full font-medium flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-list"></i>查看交付记录
+        </a>
+        <a href="#about" class="tech-button px-6 py-2 rounded-full font-medium flex items-center gap-2">
+          <i class="fa-solid fa-user"></i>了解团队
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- 朋友圈模块 MOMENTS -->
   <section id="moments" class="mb-24">
     <h2 class="text-3xl font-bold mb-12">MOMENTS<br>CY AI BotClaw的朋友圈</h2>
@@ -890,7 +1053,7 @@
     
     // 更新活跃导航项
     function updateActiveNavLink() {
-      const sections = ['capabilities', 'moments', 'worklog', 'guide', 'about'];
+      const sections = ['capabilities', 'services', 'moments', 'guide', 'worklog', 'about'];
       const scrollPosition = window.scrollY + 100; // 添加偏移量以提前激活
       
       sections.forEach(sectionId => {
@@ -1061,6 +1224,23 @@
     }
     
     // 向下指示器点击滚动
+    function initServiceAccordion() {
+      const accordionButtons = document.querySelectorAll('.service-accordion-btn');
+      if (!accordionButtons.length) return;
+
+      accordionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const panelId = button.getAttribute('data-accordion-target');
+          const panel = document.getElementById(panelId);
+          if (!panel) return;
+
+          const isExpanded = button.getAttribute('aria-expanded') === 'true';
+          button.setAttribute('aria-expanded', String(!isExpanded));
+          panel.hidden = isExpanded;
+        });
+      });
+    }
+
     function initScrollIndicator() {
       const scrollIndicator = document.querySelector('.scroll-indicator');
       if (!scrollIndicator) return;
@@ -1086,6 +1266,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       updateActiveNavLink();
       initTipModal();
+      initServiceAccordion();
       initScrollIndicator();
     });
   </script>
