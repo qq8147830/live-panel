@@ -1200,6 +1200,15 @@ async function hideSplashScreen() {
 }
 
 /**
+ * 进入 TeachZhao 数字分身智能体
+ */
+function enterTeachZhao() {
+  const targetUrl = '/teachzhao/';
+  log(`正在打开 TeachZhao: ${targetUrl}`);
+  window.open(targetUrl, '_blank', 'noopener,noreferrer');
+}
+
+/**
  * 进入主应用
  */
 function enterMainApp() {
@@ -1249,6 +1258,21 @@ function init() {
     log('用户点击了进入按钮');
     enterMainApp();
   });
+
+  const teachzhaoBtn = document.getElementById('teachzhao-btn');
+  if (teachzhaoBtn) {
+    teachzhaoBtn.addEventListener('click', (e) => {
+      log('用户点击了 TeachZhao 入口');
+      e.preventDefault();
+      enterTeachZhao();
+    });
+    teachzhaoBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        enterTeachZhao();
+      }
+    });
+  }
   
   // 键盘支持（回车键）
   enterBtn.addEventListener('keydown', (e) => {
@@ -1336,6 +1360,7 @@ init = function() {
 // 导出给外部使用（如果需要）
 window.SplashScreen = {
   enter: enterMainApp,
+  enterTeachZhao,
   hide: hideSplashScreen,
   showLogin: showLoginModal,
   hideLogin: hideLoginModal,

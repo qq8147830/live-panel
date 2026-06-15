@@ -20,7 +20,7 @@
 | 模块 | 入口 | 说明 |
 |------|------|------|
 | 产品官网 | `index.html` | 静态落地页：CAPABILITIES、朋友圈、7 天指南、工作记录、关于我们 |
-| 登录 / 启动页 | `splash.html` | 启动动画、登录弹层，可进入控制面板 |
+| 登录 / 启动页 | `splash.html` | 启动动画、登录弹层；可进入控制面板或 **TeachZhao 数字分身**（`/teachzhao/`） |
 | 控制面板（主应用） | `app.html` | Vue 3：3D 数字人、话术大屏、控制面板、Socket.IO |
 | **TeachZhao 数字分身** | `/teachzhao/` | AI 教师角色系统（Hash SPA，见 `teachzhao/`） |
 | 实时服务 | `server/index.js` | Express + Socket.IO + TeachZhao API，默认端口 **3001** |

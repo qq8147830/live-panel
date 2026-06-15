@@ -450,10 +450,23 @@ body {
 }
 
 /* ========================================
-   进入按钮
+   进入按钮组
    ======================================== */
-.enter-btn {
+.splash-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-top: 1.5rem;
+  animation: btnEnter 1s ease-out 0.9s forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.enter-btn {
+  margin-top: 0;
   padding: 1rem 2.5rem;
   font-size: 1rem;
   font-weight: 500;
@@ -469,9 +482,9 @@ body {
     0 4px 20px rgba(59, 130, 246, 0.4),
     0 0 40px rgba(59, 130, 246, 0.2);
   transition: all var(--transition-normal);
-  animation: btnEnter 1s ease-out 0.9s forwards;
-  opacity: 0;
-  transform: translateY(20px);
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
 
 @keyframes btnEnter {
@@ -504,6 +517,109 @@ body {
 
 .enter-btn:hover .btn-arrow {
   transform: translateX(4px);
+}
+
+/* TeachZhao 入口按钮（与 splash 深色主题一致） */
+.teachzhao-entry-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.35rem;
+  min-height: 3.25rem;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+  color: #e0f7ff;
+  border: 1px solid rgba(96, 165, 250, 0.45);
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.25);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  isolation: isolate;
+  cursor: pointer;
+}
+
+.teachzhao-entry-btn::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(8, 16, 36, 0.96) 0%, rgba(12, 24, 48, 0.94) 100%);
+  z-index: 1;
+}
+
+.teachzhao-entry-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 211, 238, 0.75);
+  box-shadow:
+    0 0 28px rgba(59, 130, 246, 0.45),
+    0 0 48px rgba(236, 72, 153, 0.12);
+}
+
+.teachzhao-entry-btn__glow {
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(from 0deg, transparent, rgba(59, 130, 246, 0.35), transparent, rgba(236, 72, 153, 0.22), transparent);
+  animation: teachzhaoSpin 4s linear infinite;
+  opacity: 0.55;
+  z-index: 0;
+}
+
+.teachzhao-entry-btn__particles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.teachzhao-entry-btn__particles i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #34d8f1;
+  box-shadow: 0 0 6px #34d8f1;
+  opacity: 0;
+  animation: teachzhaoFloat 3s ease-in-out infinite;
+}
+
+.teachzhao-entry-btn__particles i:nth-child(1) { left: 14%; top: 32%; animation-delay: 0s; }
+.teachzhao-entry-btn__particles i:nth-child(2) { left: 32%; top: 68%; animation-delay: 0.5s; background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+.teachzhao-entry-btn__particles i:nth-child(3) { left: 52%; top: 28%; animation-delay: 1s; }
+.teachzhao-entry-btn__particles i:nth-child(4) { left: 72%; top: 58%; animation-delay: 1.5s; background: #ec4899; box-shadow: 0 0 6px #ec4899; }
+.teachzhao-entry-btn__particles i:nth-child(5) { left: 86%; top: 36%; animation-delay: 2s; }
+.teachzhao-entry-btn__particles i:nth-child(6) { left: 24%; top: 50%; animation-delay: 2.5s; width: 1.5px; height: 1.5px; }
+
+.teachzhao-entry-btn__content {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(90deg, #a5f3fc, #93c5fd, #f9a8d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.teachzhao-entry-btn__icon,
+.teachzhao-entry-btn__external {
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: #67e8f9;
+  font-style: normal;
+}
+
+@keyframes teachzhaoSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes teachzhaoFloat {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.6); }
+  50% { opacity: 0.85; transform: translateY(-4px) scale(1); }
 }
 
 /* ========================================
@@ -594,6 +710,16 @@ body {
     padding: 0.875rem 2rem;
     font-size: 0.9rem;
   }
+
+  .teachzhao-entry-btn {
+    font-size: 0.8125rem;
+    padding: 0.75rem 1.1rem;
+    min-height: 2.85rem;
+  }
+
+  .splash-actions {
+    gap: 0.75rem;
+  }
 }
 
 /* 手机设备 */
@@ -629,6 +755,21 @@ body {
   .enter-btn {
     padding: 0.75rem 1.75rem;
     font-size: 0.875rem;
+  }
+
+  .teachzhao-entry-btn {
+    font-size: 0.75rem;
+    padding: 0.7rem 1rem;
+    min-height: 2.65rem;
+    white-space: normal;
+    text-align: center;
+    max-width: 260px;
+  }
+
+  .splash-actions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
   }
 
   .version-info {
