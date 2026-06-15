@@ -1,0 +1,20 @@
+{
+  "name": "teachzhao-agent-site",
+  "version": "1.0.0",
+  "description": "TeachZhao AI teacher and role-agent product site with a runnable local backend.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check lib/api-handlers.js && node --check api/[endpoint].js",
+    "vercel:dev": "npx vercel dev"
+  },
+  "keywords": [
+    "TeachZhao",
+    "AI teacher",
+    "agent",
+    "education"
+  ],
+  "author": "TeachZhao",
+  "license": "MIT"
+}

@@ -2,12 +2,14 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import { fileURLToPath, URL } from 'node:url'
+import { teachzhaoIntegratePlugin } from './scripts/teachzhao-plugin.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    UnoCSS()
+    UnoCSS(),
+    teachzhaoIntegratePlugin()
   ],
   resolve: {
     alias: {

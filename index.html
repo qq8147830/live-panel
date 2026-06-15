@@ -504,6 +504,121 @@
         visibility: visible;
       }
     }
+
+    /* TeachZhao 粒子科技按钮 */
+    .teachzhao-particle-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.9rem 1.25rem;
+      min-height: 2.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #e0f7ff;
+      text-decoration: none;
+      white-space: nowrap;
+      background: transparent;
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      isolation: isolate;
+    }
+
+    .teachzhao-particle-btn::after {
+      content: '';
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(8, 20, 45, 0.96) 0%, rgba(15, 30, 60, 0.94) 100%);
+      z-index: 1;
+    }
+
+    .teachzhao-particle-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(52, 216, 241, 0.75);
+      box-shadow:
+        0 0 24px rgba(59, 130, 246, 0.45),
+        0 0 40px rgba(236, 72, 153, 0.15);
+    }
+
+    .teachzhao-particle-btn__glow {
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(from 0deg, transparent, rgba(59, 130, 246, 0.35), transparent, rgba(236, 72, 153, 0.25), transparent);
+      animation: teachzhao-spin 4s linear infinite;
+      opacity: 0.6;
+      z-index: 0;
+    }
+
+    .teachzhao-particle-btn__particles {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .teachzhao-particle-btn__particles i {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: #34d8f1;
+      box-shadow: 0 0 6px #34d8f1;
+      opacity: 0;
+      animation: teachzhao-float 3s ease-in-out infinite;
+    }
+
+    .teachzhao-particle-btn__particles i:nth-child(1) { left: 12%; top: 30%; animation-delay: 0s; }
+    .teachzhao-particle-btn__particles i:nth-child(2) { left: 28%; top: 65%; animation-delay: 0.4s; background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+    .teachzhao-particle-btn__particles i:nth-child(3) { left: 45%; top: 25%; animation-delay: 0.8s; }
+    .teachzhao-particle-btn__particles i:nth-child(4) { left: 58%; top: 70%; animation-delay: 1.2s; background: #ec4899; box-shadow: 0 0 6px #ec4899; }
+    .teachzhao-particle-btn__particles i:nth-child(5) { left: 72%; top: 35%; animation-delay: 1.6s; }
+    .teachzhao-particle-btn__particles i:nth-child(6) { left: 85%; top: 55%; animation-delay: 2s; background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
+    .teachzhao-particle-btn__particles i:nth-child(7) { left: 20%; top: 48%; animation-delay: 2.4s; width: 1.5px; height: 1.5px; }
+    .teachzhao-particle-btn__particles i:nth-child(8) { left: 90%; top: 28%; animation-delay: 2.8s; width: 1.5px; height: 1.5px; }
+
+    .teachzhao-particle-btn__content {
+      position: relative;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(90deg, #a5f3fc, #93c5fd, #f9a8d4);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .teachzhao-particle-btn__content .fa-robot,
+    .teachzhao-particle-btn__content .fa-arrow-up-right-from-square {
+      -webkit-background-clip: unset;
+      background-clip: unset;
+      color: #67e8f9;
+    }
+
+    @keyframes teachzhao-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes teachzhao-float {
+      0%, 100% { opacity: 0; transform: translateY(0) scale(0.6); }
+      50% { opacity: 0.9; transform: translateY(-4px) scale(1); }
+    }
+
+    @media (max-width: 1023px) {
+      .teachzhao-particle-btn {
+        font-size: 0.8125rem;
+        padding: 0.75rem 1rem;
+        min-height: 2.5rem;
+        white-space: normal;
+        text-align: center;
+        max-width: 280px;
+      }
+    }
   </style>
 </head>
 <body class="pt-20">
@@ -618,7 +733,30 @@
 
   <!-- 能力模块 CAPABILITIES -->
   <section id="capabilities" class="mb-24">
-    <h2 class="text-3xl font-bold mb-12">CAPABILITIES<br>我能做什么</h2>
+    <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start lg:items-center mb-12">
+      <div class="lg:w-2/5 shrink-0">
+        <h2 class="text-3xl font-bold">CAPABILITIES<br>我能做什么</h2>
+      </div>
+      <div class="lg:w-1/2 w-full flex justify-center max-w-xl mx-auto lg:mx-15">
+        <a
+          href="/teachzhao/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="teachzhao-particle-btn"
+          title="在新窗口打开 TeachZhao 数字分身智能体"
+        >
+          <span class="teachzhao-particle-btn__glow" aria-hidden="true"></span>
+          <span class="teachzhao-particle-btn__particles" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </span>
+          <span class="teachzhao-particle-btn__content">
+            <i class="fa-solid fa-robot"></i>
+            <span>进入 TeachZhao 数字分身智能体</span>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </span>
+        </a>
+      </div>
+    </div>
     <!-- 文字介绍 + 轮播图 左右两栏布局 -->
     <div class="flex flex-col lg:flex-row gap-8 items-stretch mb-12">
       <!-- 左侧文字介绍 -->
@@ -722,11 +860,11 @@
         <h3 class="text-lg font-bold mb-1">企业智能体</h3>
         <p class="text-sm text-light/70">企业级AI Agent解决方案，OpenClaw龙虾养成管理、多智能体集群、企业AI内训、OPC管理与实施。</p>
       </div>
-      <!-- 多平台发布 -->
+      <!-- 数字分身AI智能体 -->
       <div class="card-hover p-5 rounded-lg">
         <i class="fa-solid fa-rocket text-xl mb-3 text-red-400"></i>
-        <h3 class="text-lg font-bold mb-1">多平台发布</h3>
-        <p class="text-sm text-light/70">一份内容，适配多个平台的格式和规范。公众号、红红书、微博、视频号一次搞定。</p>
+        <h3 class="text-lg font-bold mb-1">数字分身AI智能体</h3>
+        <p class="text-sm text-light/70">数字分身AI智能体，使用女娲角色可创建定制AI数字分身，支持智能体专家团、专业skills管理等。</p>
       </div>
       <!-- 网页浏览 -->
       <div class="card-hover p-5 rounded-lg">

@@ -1,5 +1,21 @@
 # 更新日志
 
+## [2.1.0] - 2026-06-15
+
+### ✨ 新增
+
+- **TeachZhao 数字分身子模块**（`teachzhao/`）
+  - 集成至 `/teachzhao/`，Vite 插件 + Express 双端托管
+  - 官网 CAPABILITIES 区粒子科技风入口按钮（新窗口打开）
+  - TeachZhao 顶栏「🦍 长右灵」返回官网
+- **npm 脚本**：`server`、`dev:teachzhao`、`dev:all`
+- **构建**：`dist/` 自动包含 `teachzhao/`、官网与 splash 静态页
+
+### 🔧 优化
+
+- TeachZhao 入口按钮增高（`min-height: 2.75rem`，更易点击）
+- README 全面重写：启动、访问、API、集成架构、故障排除
+
 ## [2.0.0] - 2025-03-30
 
 ### 🎉 重大更新
