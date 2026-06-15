@@ -1,6 +1,6 @@
 {
   "name": "ai-digital-human-live-panel",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Hai AI BotClaw控制面板 - 商用级前端界面",
   "type": "module",
   "scripts": {

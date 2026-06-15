@@ -11,7 +11,7 @@
 
 后端提供 Socket.IO 实时通信与 TeachZhao API，当前部分能力为 echo / 规则模板模拟，可扩展接入真实大模型与语音合成。
 
-**当前版本：2.1.0**（2026-06-15）
+**当前版本：2.1.1**（2026-06-15）
 
 ---
 
@@ -157,9 +157,16 @@ npm run build
 | `dist/teachzhao/` | TeachZhao 子模块 |
 | `dist/assets/` | 控制面板打包资源 |
 
-将 **整个 `dist/` 目录** 上传至静态服务器（Nginx / OSS / Vercel 等）。TeachZhao 访问路径仍为 `/teachzhao/`。
+将 **整个 `dist/` 目录** 部署至静态服务器。**Vercel** 已在仓库根目录配置 `vercel.json`（`outputDirectory: dist`），Push 后自动构建部署。
 
-> TeachZhao API 在纯静态托管下不可用，需同时部署 `server/index.js`（Node）或将 API 代理到后端。开发环境由 Vite 插件内置 API。
+| 环境 | 地址 |
+|------|------|
+| Vercel 生产 | https://live-panel-virid.vercel.app |
+| TeachZhao | https://live-panel-virid.vercel.app/teachzhao/ |
+| 产品官网 | https://live-panel-virid.vercel.app/index.html |
+| 控制面板 | https://live-panel-virid.vercel.app/app.html |
+
+> TeachZhao API 在 Vercel 上通过 `api/teachzhao/[endpoint].js` Serverless 函数提供，路径仍为 `/teachzhao/api/*`。Socket.IO 控制面板后端需单独 Node 服务，无法纯静态托管。
 
 **WebSocket**：控制面板默认连接 `http://localhost:3001`（见 `src/App.vue` 中 `SOCKET_URL`）。
 
@@ -461,6 +468,13 @@ lsof -ti:3001 | xargs kill -9
 2. 地址：http://localhost:5173/teachzhao/
 3. Network 检查 `/teachzhao/src/app.js`、`/teachzhao/api/chat` 为 200
 
+### Vercel 上 /teachzhao/ 返回 404
+
+1. 确认仓库根目录存在 `vercel.json`，且 `outputDirectory` 为 `dist`
+2. 确认 Vercel 项目 **Root Directory** 为仓库根（不是 `teachzhao/` 子目录）
+3. 本地执行 `npm run build` 后检查 `dist/teachzhao/index.html` 是否存在
+4. 重新 Deploy 或 push 到 `main` 触发构建
+
 ---
 
 ## 验证启动成功
@@ -475,6 +489,36 @@ lsof -ti:3001 | xargs kill -9
 
 ## 发布流程
 
+### Vercel（推荐）
+
+仓库已包含根目录 [`vercel.json`](./vercel.json)：
+
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/teachzhao/api/:endpoint", "destination": "/api/teachzhao/:endpoint" },
+    { "source": "/teachzhao", "destination": "/teachzhao/index.html" }
+  ]
+}
+```
+
+1. 在 [Vercel](https://vercel.com) Import 仓库 `qq8147830/live-panel`
+2. **Framework Preset**：Vite（或 Other，以 `vercel.json` 为准）
+3. **Root Directory**：留空（仓库根目录）
+4. **Build Command / Output Directory**：由 `vercel.json` 自动读取，无需手填
+5. `git push origin main` 后自动重新部署
+
+本地验证构建产物：
+
+```bash
+npm run build
+ls dist/teachzhao/index.html   # 必须存在
+```
+
+### 通用发布
+
 ```bash
 # 1. 安装依赖（首次或 package.json 变更后）
 npm install
@@ -487,7 +531,7 @@ npm run preview
 
 # 4. 部署 dist/ 至服务器，或 push 至 Git 触发 CI
 git add .
-git commit -m "release: v2.1.0 ..."
+git commit -m "release: v2.1.x ..."
 git push origin main
 ```
 
@@ -501,6 +545,10 @@ npm run server
 ---
 
 ## 版本与更新日志
+
+### [2.1.1] - 2026-06-15
+
+- 修复 Vercel 上 `/teachzhao/` 404：根目录 `vercel.json` + `api/teachzhao/` Serverless
 
 ### [2.1.0] - 2026-06-15
 

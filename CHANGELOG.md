@@ -1,5 +1,12 @@
 # 更新日志
 
+## [2.1.1] - 2026-06-15
+
+### 🐛 修复
+
+- **Vercel 部署**：新增根目录 `vercel.json`（`outputDirectory: dist`），修复 `/teachzhao/` 404
+- **Vercel API**：新增 `api/teachzhao/[endpoint].js`，线上 `/teachzhao/api/*` 可用
+
 ## [2.1.0] - 2026-06-15
 
 ### ✨ 新增
