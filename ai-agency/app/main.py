@@ -110,6 +110,20 @@ def create_app() -> FastAPI:
         except FileNotFoundError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+    @app.post("/api/micro/stream")
+    async def micro_stream(payload: MicroRequest) -> StreamingResponse:
+        def event_stream():
+            try:
+                for event in get_service().run_micro_stream_events(
+                    payload.incident,
+                    thinking_mode=payload.thinking_mode,
+                ):
+                    yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+            except Exception as exc:  # noqa: BLE001
+                yield f"data: {json.dumps({'type': 'error', 'detail': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
     return app
 
 

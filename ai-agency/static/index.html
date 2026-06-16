@@ -88,7 +88,7 @@
       min-height: calc(100vh - 220px);
       max-height: none;
     }
-    .expert-item, .micro-brief-card {
+    .expert-item, .micro-brief-card, .pipeline-step {
       border: 1px solid var(--border);
       background: var(--panel-2);
       border-radius: 12px;
@@ -96,8 +96,22 @@
     }
     .expert-item { cursor: pointer; }
     .expert-item.active { border-color: var(--accent); }
-    .expert-item .name, .micro-brief-card .name { font-weight: 600; font-size: 14px; }
-    .expert-item .meta, .micro-brief-card .meta { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+    .expert-item .name, .micro-brief-card .name, .pipeline-step .name { font-weight: 600; font-size: 14px; }
+    .expert-item .meta, .micro-brief-card .meta, .pipeline-step .meta { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+    .micro-pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pipeline-step .step-num {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid rgba(79, 140, 255, 0.4);
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-bottom: 6px;
+    }
     .main {
       flex: 1;
       display: flex;
@@ -172,7 +186,29 @@
       color: var(--muted);
       font-size: 13px;
       text-align: center;
+      line-height: 1.55;
     }
+    .msg.status-bubble.deep {
+      background: rgba(167, 139, 250, 0.08);
+      border-color: rgba(167, 139, 250, 0.35);
+    }
+    .msg.status-bubble .status-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .msg.status-bubble.deep .status-title { color: #ddd6fe; }
+    .msg.status-bubble .status-estimate { color: var(--accent); }
+    .msg.status-bubble.deep .status-estimate { color: #c4b5fd; }
+    .msg.status-bubble .status-elapsed { font-size: 12px; margin-top: 4px; }
+    .msg.status-bubble .status-step {
+      font-size: 13px;
+      margin-top: 8px;
+      color: #93c5fd;
+      font-weight: 500;
+    }
+    .msg.status-bubble.deep .status-step { color: #c4b5fd; }
     .msg.error {
       border-color: rgba(249, 115, 22, 0.5);
       background: rgba(249, 115, 22, 0.08);
@@ -296,6 +332,7 @@
         <div class="name">P1 事故响应</div>
         <div class="meta">描述事故现象与影响范围即可。系统将按固定流水线自动协作，完成后在右侧对话区一次性展示全部步骤结果。</div>
       </div>
+      <div class="micro-pipeline" id="microPipeline"></div>
     </div>
   </aside>
 
@@ -350,10 +387,13 @@
       selectedExpertId: '',
       thinkingMode: 'fast',
       loading: false,
+      pipeline: [],
       messages: [],
       abortController: null,
       waitTimer: null,
       lastFailedRequest: null,
+      waitEstimate: null,
+      waitStepLine: '',
     };
 
     const els = {
@@ -364,6 +404,7 @@
       divisionSelect: document.getElementById('divisionSelect'),
       expertList: document.getElementById('expertList'),
       microBrief: document.getElementById('microBrief'),
+      microPipeline: document.getElementById('microPipeline'),
       messages: document.getElementById('messages'),
       input: document.getElementById('input'),
       sendBtn: document.getElementById('sendBtn'),
@@ -410,11 +451,54 @@
       return `${(ms / 1000).toFixed(1)} 秒`;
     }
 
-    function estimateLabel(mode, micro = false) {
+    function defaultEstimate(mode, micro = false) {
       const fast = micro ? [32, 60] : [8, 15];
       const deep = micro ? [100, 240] : [25, 60];
       const [lo, hi] = mode === 'deep' ? deep : fast;
-      return `${lo}–${hi} 秒`;
+      return { low: lo, high: hi };
+    }
+
+    function formatDuration(seconds) {
+      const s = Math.max(0, Math.round(seconds));
+      if (s < 60) return `${s} 秒`;
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return r === 0 ? `${m} 分钟` : `${m} 分 ${r} 秒`;
+    }
+
+    function formatEstimateRange(low, high) {
+      if (low === high) return `约 ${formatDuration(low)}`;
+      if (low < 60 && high < 60) return `约 ${low}–${high} 秒`;
+      return `约 ${formatDuration(low)}–${formatDuration(high)}`;
+    }
+
+    function thinkingStatusTitle(thinkingMode, isMicro) {
+      const prefix = isMicro ? 'NEXUS-Micro · ' : '';
+      return thinkingMode === 'deep'
+        ? `${prefix}🧠 深度思考中…`
+        : `${prefix}⚡ 快速思考中…`;
+    }
+
+    function buildStatusHtml(thinkingMode, isMicro, estimate, elapsedSecs, stepLine = '') {
+      const est = estimate || defaultEstimate(thinkingMode, isMicro);
+      const title = thinkingStatusTitle(thinkingMode, isMicro);
+      const estimateText = `请等待，预计 ${formatEstimateRange(est.low, est.high)}`;
+      const elapsedText = `已等待 ${elapsedSecs} 秒`;
+      const stepHtml = stepLine
+        ? `<div class="status-step">${escapeHtml(stepLine)}</div>`
+        : '';
+      return `
+        <div class="status-title">${escapeHtml(title)}</div>
+        <div class="status-estimate">${escapeHtml(estimateText)}</div>
+        <div class="status-elapsed">${escapeHtml(elapsedText)}</div>
+        ${stepHtml}
+      `;
+    }
+
+    function microStepStatusLine(event) {
+      const modeLabel = event.thinking_mode === 'deep' ? '深度思考' : '快速思考';
+      const label = event.agent_label || event.agent_name || '专家';
+      return `Step ${event.step}/${event.total_steps} · ${label} ${modeLabel}中…`;
     }
 
     function renderThinkingToggle() {
@@ -466,8 +550,8 @@
       let text = '';
       if (isMicro) {
         text = isDeep
-          ? 'NEXUS-Micro 深度思考模式：4 位专家将依次进行更严谨的逐步推理，整体耗时会更长。完成后一次性展示 4 步结果。'
-          : 'NEXUS-Micro：P1 事故响应流水线，4 位专家依次协作。请求期间会显示等待计时，完成后一次性展示全部步骤。';
+          ? 'NEXUS-Micro 深度思考模式：4 位专家将依次进行更严谨的逐步推理。等待期间会显示「Step 1/4 … 深度思考中」等进度，完成后一次性展示 4 步结果。'
+          : 'NEXUS-Micro：P1 事故响应流水线，4 位专家依次协作。等待期间会实时显示当前步骤进度，完成后一次性展示全部步骤。';
       } else {
         text = isDeep
           ? '深度思考模式：专家会先逐步推理再作答，响应更慢但通常更严谨。支持流式输出。'
@@ -491,33 +575,61 @@
       if (persist) appendToHistory(role, content, { badge, meta });
     }
 
-    function addStatusBubble(text) {
+    function addStatusBubble(thinkingMode, isMicro, estimate) {
+      state.waitEstimate = estimate || defaultEstimate(thinkingMode, isMicro);
       const node = document.createElement('div');
-      node.className = 'msg status-bubble';
+      node.className = `msg status-bubble${thinkingMode === 'deep' ? ' deep' : ''}`;
       node.id = 'statusBubble';
-      node.textContent = text;
+      node.innerHTML = buildStatusHtml(thinkingMode, isMicro, state.waitEstimate, 0);
       els.messages.appendChild(node);
       els.messages.scrollTop = els.messages.scrollHeight;
       return node;
     }
 
-    function updateStatusBubble(text) {
+    function updateStatusBubble(elapsedSecs, extraLine = '') {
       const node = document.getElementById('statusBubble');
-      if (node) node.textContent = text;
+      if (!node) return;
+      const isMicro = state.mode === 'micro';
+      let html = buildStatusHtml(
+        state.thinkingMode,
+        isMicro,
+        state.waitEstimate,
+        elapsedSecs,
+        state.waitStepLine,
+      );
+      if (extraLine) {
+        html += `<div class="status-elapsed">${escapeHtml(extraLine)}</div>`;
+      }
+      node.innerHTML = html;
     }
 
     function removeStatusBubble() {
       document.getElementById('statusBubble')?.remove();
     }
 
-    function startWaitTimer(mode, micro = false) {
+    function startWaitTimer(thinkingMode, isMicro = false, estimate = null) {
       const start = Date.now();
-      const est = estimateLabel(mode, micro);
-      addStatusBubble(`处理中… 已等待 0 秒 · 预计 ${est}`);
+      state.waitStepLine = '';
+      addStatusBubble(thinkingMode, isMicro, estimate);
       state.waitTimer = setInterval(() => {
         const secs = Math.floor((Date.now() - start) / 1000);
-        updateStatusBubble(`处理中… 已等待 ${secs} 秒 · 预计 ${est}${mode === 'deep' ? ' · 深度思考' : ''}`);
+        const est = state.waitEstimate || defaultEstimate(thinkingMode, isMicro);
+        let extra = '';
+        if (secs > est.high * 1.5) {
+          extra = '仍在处理中，请稍候…';
+        }
+        updateStatusBubble(secs, extra);
       }, 1000);
+    }
+
+    function refreshStatusBubbleNow() {
+      const node = document.getElementById('statusBubble');
+      if (!node) return;
+      const elapsedText = node.querySelector('.status-elapsed');
+      const secs = elapsedText
+        ? parseInt(elapsedText.textContent.replace(/[^\d]/g, ''), 10) || 0
+        : 0;
+      updateStatusBubble(secs);
     }
 
     function stopWaitTimer() {
@@ -525,7 +637,19 @@
         clearInterval(state.waitTimer);
         state.waitTimer = null;
       }
+      state.waitEstimate = null;
+      state.waitStepLine = '';
       removeStatusBubble();
+    }
+
+    function renderMicroSteps(data) {
+      const totalMeta = `总耗时 ${formatElapsed(data.elapsed_ms)} · ${data.thinking_mode === 'deep' ? '深度思考 ×4' : '快速模式 ×4'}`;
+      (data.steps || []).forEach((step, index) => {
+        addMessage('assistant', step.content, {
+          badge: `Step ${index + 1} · ${step.agent_label || step.agent_name}`,
+          meta: index === (data.steps.length - 1) ? totalMeta : '',
+        });
+      });
     }
 
     function setLoading(loading) {
@@ -556,6 +680,31 @@
         : `专家 ${data.experts} 位 · 领域 ${data.divisions.length} 个${data.embedded_prompts ? ' · 内嵌 prompt' : ''}`;
       if (data.deploy_hint) console.warn('[ai-agency]', data.deploy_hint);
       return data;
+    }
+
+    async function loadPipeline() {
+      const res = await fetch(`${API_BASE}/micro/pipeline`);
+      const data = await res.json();
+      state.pipeline = data.steps || [];
+      renderMicroPipeline();
+    }
+
+    function renderMicroPipeline() {
+      els.microPipeline.innerHTML = '';
+      if (!state.pipeline.length) {
+        els.microPipeline.innerHTML = '<div class="pipeline-step"><div class="meta">加载流水线…</div></div>';
+        return;
+      }
+      state.pipeline.forEach((step) => {
+        const item = document.createElement('div');
+        item.className = 'pipeline-step';
+        item.innerHTML = `
+          <div class="step-num">Step ${step.step}</div>
+          <div class="name">${escapeHtml(step.agent_label || step.agent_name)}</div>
+          <div class="meta">${escapeHtml(step.role)}</div>
+        `;
+        els.microPipeline.appendChild(item);
+      });
     }
 
     async function loadExperts() {
@@ -696,8 +845,6 @@
       const decoder = new TextDecoder();
       let buffer = '';
       let meta = null;
-      let assistantNode = null;
-      let bodyEl = null;
       let fullText = '';
 
       while (true) {
@@ -712,32 +859,27 @@
           if (event.type === 'error') throw new Error(event.detail || '流式请求失败');
           if (event.type === 'meta') {
             meta = event;
-            stopWaitTimer();
-            assistantNode = document.createElement('div');
-            assistantNode.className = 'msg assistant';
-            const badge = `${meta.expert_label || meta.expert_name}${meta.routed ? ' · 自动路由' : ''}${meta.thinking_mode === 'deep' ? ' · 深度思考' : ''}`;
-            assistantNode.innerHTML = `<div class="badge">${escapeHtml(badge)}</div><div class="msg-body"></div><div class="msg-actions"><button type="button" data-copy>复制</button></div>`;
-            bodyEl = assistantNode.querySelector('.msg-body');
-            els.messages.appendChild(assistantNode);
+            if (event.estimate_seconds) {
+              state.waitEstimate = event.estimate_seconds;
+            }
           }
-          if (event.type === 'chunk' && bodyEl) {
+          if (event.type === 'chunk') {
             fullText += event.content;
-            bodyEl.textContent = fullText;
-            els.messages.scrollTop = els.messages.scrollHeight;
           }
           if (event.type === 'done') {
+            stopWaitTimer();
+            const badge = meta
+              ? `${meta.expert_label || meta.expert_name}${meta.routed ? ' · 自动路由' : ''}${meta.thinking_mode === 'deep' ? ' · 深度思考' : ''}`
+              : '';
             const metaLine = `耗时 ${formatElapsed(event.elapsed_ms)} · ${state.thinkingMode === 'deep' ? '深度思考' : '快速模式'}`;
-            const metaDiv = document.createElement('div');
-            metaDiv.className = 'meta-line';
-            metaDiv.textContent = metaLine;
-            assistantNode?.appendChild(metaDiv);
-            assistantNode?.querySelector('[data-copy]')?.addEventListener('click', async () => {
-              try { await navigator.clipboard.writeText(fullText || event.response); } catch (_) {}
+            const content = fullText || event.response || '';
+            const node = createAssistantNode(content, { badge, meta: metaLine });
+            node.querySelector('[data-copy]')?.addEventListener('click', async () => {
+              try { await navigator.clipboard.writeText(content); } catch (_) {}
             });
-            appendToHistory('assistant', fullText || event.response, {
-              badge: meta ? `${meta.expert_label || meta.expert_name}${meta.routed ? ' · 自动路由' : ''}` : '',
-              meta: metaLine,
-            });
+            els.messages.appendChild(node);
+            els.messages.scrollTop = els.messages.scrollHeight;
+            appendToHistory('assistant', content, { badge, meta: metaLine });
           }
         }
       }
@@ -764,7 +906,58 @@
       });
     }
 
-    async function sendMicro(text, signal) {
+    async function sendMicroStream(text, signal) {
+      const res = await fetch(`${API_BASE}/micro/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          incident: text,
+          thinking_mode: state.thinkingMode,
+        }),
+        signal,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || '请求失败');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const event = JSON.parse(line.slice(6));
+          if (event.type === 'error') throw new Error(event.detail || '流式请求失败');
+          if (event.type === 'meta' && event.estimate_seconds) {
+            state.waitEstimate = event.estimate_seconds;
+          }
+          if (event.type === 'step_start') {
+            state.waitStepLine = microStepStatusLine(event);
+            refreshStatusBubbleNow();
+          }
+          if (event.type === 'step_done') {
+            const next = event.step < event.total_steps
+              ? `Step ${event.step} 完成，准备 Step ${event.step + 1}…`
+              : `Step ${event.step} 完成，正在汇总…`;
+            state.waitStepLine = next;
+            refreshStatusBubbleNow();
+          }
+          if (event.type === 'done') {
+            stopWaitTimer();
+            renderMicroSteps(event);
+          }
+        }
+      }
+    }
+
+    async function sendMicroFallback(text, signal) {
       const res = await fetch(`${API_BASE}/micro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -777,13 +970,7 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || '请求失败');
       stopWaitTimer();
-      const totalMeta = `总耗时 ${formatElapsed(data.elapsed_ms)} · ${data.thinking_mode === 'deep' ? '深度思考 ×4' : '快速模式 ×4'}`;
-      (data.steps || []).forEach((step, index) => {
-        addMessage('assistant', step.content, {
-          badge: `Step ${index + 1} · ${step.agent_label || step.agent_name}`,
-          meta: index === (data.steps.length - 1) ? totalMeta : '',
-        });
-      });
+      renderMicroSteps(data);
     }
 
     async function sendMessage(retryText) {
@@ -810,7 +997,12 @@
               await sendChatFallback(text, state.abortController.signal);
             }
           } else {
-            await sendMicro(text, state.abortController.signal);
+            try {
+              await sendMicroStream(text, state.abortController.signal);
+            } catch (streamErr) {
+              if (streamErr.name === 'AbortError') throw streamErr;
+              await sendMicroFallback(text, state.abortController.signal);
+            }
           }
         } catch (error) {
           stopWaitTimer();
@@ -866,7 +1058,7 @@
         }
         els.divisionSelect.appendChild(option);
       });
-      await loadExperts();
+      await Promise.all([loadExperts(), loadPipeline()]);
       setMode(state.mode);
       if (state.messages.length) renderMessagesFromState();
       else showWelcome();

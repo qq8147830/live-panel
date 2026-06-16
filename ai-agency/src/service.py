@@ -14,6 +14,7 @@ if str(SRC) not in sys.path:
 from agent import AgentFactory  # noqa: E402
 from expert_registry import ExpertRegistry, build_registry  # noqa: E402
 from llm import LLMClient, LLMConfig, estimate_seconds, normalize_thinking_mode  # noqa: E402
+from models import Deliverable, NexusRunResult, NexusStep  # noqa: E402
 from nexus_micro import INCIDENT_P1_PIPELINE, NexusMicroRunner  # noqa: E402
 from i18n import division_label, enrich_expert, expert_header  # noqa: E402
 from paths import PROJECT_ROOT, resolve_agency_root, resolve_registry_path  # noqa: E402
@@ -166,6 +167,82 @@ class AgencyService:
         result = runner.run_incident_p1(incident, thinking_mode=mode)
         elapsed_ms = int((time.perf_counter() - start) * 1000)
 
+        return self._format_micro_result(result, mode, elapsed_ms, est_low, est_high)
+
+    def run_micro_stream_events(
+        self, incident: str, thinking_mode: str = "fast"
+    ) -> Generator[dict, None, None]:
+        mode = normalize_thinking_mode(thinking_mode)
+        est_low, est_high = estimate_seconds(mode, micro_steps=4)
+
+        factory = self._get_factory()
+        runner = NexusMicroRunner(factory)
+
+        yield {
+            "type": "meta",
+            "scenario": "incident-response-p1",
+            "thinking_mode": mode,
+            "estimate_seconds": {"low": est_low, "high": est_high},
+            "total_steps": len(INCIDENT_P1_PIPELINE),
+            "pipeline": self.micro_pipeline_info(),
+        }
+
+        start = time.perf_counter()
+        result: NexusRunResult | None = None
+
+        for event, payload in runner.iter_incident_p1(incident, thinking_mode=mode):
+            if event == "step_start":
+                data = payload  # type: ignore[assignment]
+                step: NexusStep = data["pipeline_step"]
+                profile = self.registry.find_by_name_fuzzy(step.agent_name)
+                agent_id = profile.id if profile else ""
+                yield {
+                    "type": "step_start",
+                    "step": data["step"],
+                    "total_steps": data["total_steps"],
+                    "agent_id": agent_id,
+                    "agent_name": step.agent_name,
+                    "agent_label": expert_header(step.agent_name, agent_id),
+                    "role": step.role,
+                    "thinking_mode": mode,
+                }
+            elif event == "step_done":
+                data = payload  # type: ignore[assignment]
+                deliverable: Deliverable = data["deliverable"]
+                yield {
+                    "type": "step_done",
+                    "step": data["step"],
+                    "total_steps": data["total_steps"],
+                    "agent_id": deliverable.agent_id,
+                    "agent_name": deliverable.agent_name,
+                    "elapsed_ms": None,
+                }
+            elif event == "complete":
+                result = payload  # type: ignore[assignment]
+
+        if result is None:
+            raise RuntimeError("NEXUS-Micro pipeline produced no result.")
+
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        formatted = self._format_micro_result(result, mode, elapsed_ms, est_low, est_high)
+        yield {
+            "type": "done",
+            "scenario": formatted["scenario"],
+            "thinking_mode": formatted["thinking_mode"],
+            "elapsed_ms": formatted["elapsed_ms"],
+            "estimate_seconds": formatted["estimate_seconds"],
+            "steps": formatted["steps"],
+            "final_response": formatted["final_response"],
+        }
+
+    def _format_micro_result(
+        self,
+        result: NexusRunResult,
+        mode: str,
+        elapsed_ms: int,
+        est_low: int,
+        est_high: int,
+    ) -> dict:
         return {
             "scenario": result.scenario,
             "thinking_mode": mode,

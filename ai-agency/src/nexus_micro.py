@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import Iterator
+
 from agent import AgentFactory
-from models import HandoffContext, NexusRunResult, NexusStep
+from models import Deliverable, HandoffContext, NexusRunResult, NexusStep
 
 
 INCIDENT_P1_PIPELINE: list[NexusStep] = [
@@ -49,14 +51,32 @@ class NexusMicroRunner:
     def run_incident_p1(
         self, incident: str, thinking_mode: str = "fast"
     ) -> NexusRunResult:
+        result: NexusRunResult | None = None
+        for event, payload in self.iter_incident_p1(incident, thinking_mode=thinking_mode):
+            if event == "complete":
+                result = payload  # type: ignore[assignment]
+        if result is None:
+            raise RuntimeError("NEXUS-Micro pipeline produced no result.")
+        return result
+
+    def iter_incident_p1(
+        self, incident: str, thinking_mode: str = "fast"
+    ) -> Iterator[tuple[str, object]]:
+        """Yield step_start / step_done / complete events for streaming UI."""
         context = HandoffContext(
             project="incident-response",
             phase="NEXUS-Micro / P1",
             metadata={"scenario": "scenario-incident-response", "severity": "P1"},
         )
-        deliverables = []
+        deliverables: list[Deliverable] = []
+        total = len(INCIDENT_P1_PIPELINE)
 
-        for step in INCIDENT_P1_PIPELINE:
+        for index, step in enumerate(INCIDENT_P1_PIPELINE, start=1):
+            yield (
+                "step_start",
+                {"step": index, "total_steps": total, "pipeline_step": step},
+            )
+
             agent = self.factory.get_by_name(step.agent_name)
             task = (
                 f"Incident report:\n{incident}\n\n"
@@ -68,4 +88,12 @@ class NexusMicroRunner:
             context.from_agent = deliverable.agent_name
             context.prior_outputs.append(deliverable.to_handoff_block())
 
-        return NexusRunResult(scenario="incident-response-p1", steps=deliverables)
+            yield (
+                "step_done",
+                {"step": index, "total_steps": total, "deliverable": deliverable},
+            )
+
+        yield (
+            "complete",
+            NexusRunResult(scenario="incident-response-p1", steps=deliverables),
+        )
