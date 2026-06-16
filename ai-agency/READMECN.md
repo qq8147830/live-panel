@@ -6,43 +6,89 @@
 
 ## 项目地址
 
-**本地项目目录（绝对路径）：**
+**GitHub / Vercel 主目录：**
+
+```text
+/Users/hh101/Documents/GitHub/qq8147830/live-panel/ai-agency
+```
+
+**Cursor 编辑副本：**
 
 ```text
 /Users/hh101/Desktop/2025HTML/Cursor/888-PromptX/-Deepduct--/21-NPC/ai-agency
 ```
 
-**本地访问地址（默认端口 `18888`，避免与常见 3000/8000 冲突）：**
+**本地访问：** `http://127.0.0.1:18888`  
+**Vercel 生产：** `https://live-panel-virid.vercel.app/ai-agency/`
 
-```text
-http://127.0.0.1:18888
-```
+---
 
-### 每次重启电脑后如何启动
+## 你以后这样用
 
-在终端依次执行：
+> **本目录是 GitHub / Vercel 主目录。** 在此开发、提交、推送；`live-panel` 仓库从这儿同步到 GitHub。
+
+### 两个目录分别是什么
+
+| 目录 | 角色 |
+|------|------|
+| `~/Documents/GitHub/.../live-panel/ai-agency` | **主目录**：Git 提交、推 GitHub、Vercel 部署 |
+| `.../Cursor/.../ai-agency` | **编辑副本**：在 Cursor 里改代码，可同步到主目录 |
+
+两份代码**不会自动同步**，需要时用脚本或手动 `rsync`。
+
+### 日常开发（推荐在主目录）
 
 ```bash
-cd /Users/hh101/Desktop/2025HTML/Cursor/888-PromptX/-Deepduct--/21-NPC/ai-agency
+cd /Users/hh101/Documents/GitHub/qq8147830/live-panel/ai-agency
 bash run_dev.sh
 ```
 
-看到如下输出表示启动成功：
+浏览器打开 `http://127.0.0.1:18888`。
+
+启动后请看终端输出：
 
 ```text
-Starting AI Agency at http://127.0.0.1:18888
-INFO:     Uvicorn running on http://127.0.0.1:18888 (Press CTRL+C to quit)
+Serving from: /Users/hh101/Documents/GitHub/qq8147830/live-panel/ai-agency
 ```
 
-然后在浏览器打开：
-
-```text
-http://127.0.0.1:18888
-```
+出现上述路径，说明跑的是**主目录**；若路径不对，说明 18888 被另一个副本占用了，先 `Ctrl+C` 停掉再重启。
 
 停止服务：在运行 `run_dev.sh` 的终端按 `Ctrl + C`。
 
-> **首次使用**（还没跑过 `setup_data.sh`、没有 `.env`）才需要先初始化，见下文「快速开始」。日常重启电脑后只需上面两条命令即可。
+### 推送到 GitHub / Vercel
+
+```bash
+cd /Users/hh101/Documents/GitHub/qq8147830/live-panel/ai-agency
+bash scripts/push-github.sh "你的提交说明"
+```
+
+脚本会在 `live-panel` 仓库根目录执行 `git add ai-agency`、`git commit`、`git push origin main`，Vercel 会自动重新部署。
+
+### 若先在 Cursor 副本改代码
+
+```bash
+cd /Users/hh101/Documents/GitHub/qq8147830/live-panel/ai-agency
+bash scripts/sync-from-cursor.sh
+bash scripts/push-github.sh "sync from cursor"
+```
+
+`sync-from-cursor.sh` 会把 Cursor 副本的改动覆盖同步到本目录（不含 `venv`、`.env`、软链接 `data/agency-agents`）。
+
+### 避免踩坑
+
+1. **只从一个目录启动 18888** — 以终端里 `Serving from:` 为准。
+2. **Git 只在 live-panel 根仓库提交** — 不要指望 Cursor 副本里的独立 `.git` 推送到 GitHub。
+3. **改完 UI 要硬刷新** — 浏览器 `Cmd + Shift + R`。
+4. **Vercel 对话需环境变量** — 在 Vercel 项目设置中配置 `OPENAI_API_KEY`、`OPENAI_BASE_URL`、`MODEL_NAME`。
+
+### 部署后验证
+
+| 检查项 | URL |
+|--------|-----|
+| API 健康 | `https://live-panel-virid.vercel.app/api/ai-agency/health` |
+| 页面 | `https://live-panel-virid.vercel.app/ai-agency/` |
+
+`health` 应返回 `"experts": 169`。页面左侧应显示专家列表（单专家模式），NEXUS-Micro 模式侧栏只显示一句 P1 说明、不列专家名。
 
 ---
 
@@ -279,7 +325,17 @@ cp -R ../agency-agents/agency-agents data/agency-agents
 bash scripts/build_registry.py
 ```
 
-bashbash> Vercel 部署时必须能访问到 `data/agency-agents` 下的 `.md` 文件，否则专家 prompt 无法加载。
+bashbash> **Vercel 关键**：必须把 `registry/registry.json` 提交进 Git。本地 `data/agency-agents` 是软链接，Vercel 无法读取。推荐构建时内嵌 prompt：
+
+```bash
+cd /Users/hh101/Desktop/2025HTML/Cursor/888-PromptX/-Deepduct--/21-NPC/ai-agency
+bash scripts/setup_data.sh
+python scripts/build_registry.py --embed-prompts
+git add registry/registry.json data/locale_zh.json
+git commit -m "chore: embed expert registry for Vercel"
+```
+
+内嵌后约 2.3MB，对话不再依赖 `data/agency-agents` 下的 `.md` 文件。
 
 ### 3. 推送到 GitHub
 
@@ -291,7 +347,64 @@ git push -u origin main
 
 bashbash---
 
-## 部署到 Vercel
+## 部署到 Vercel（live-panel  monorepo）
+
+`ai-agency` **不是独立仓库**，而是 [live-panel](https://github.com/qq8147830/live-panel) 的子目录：
+
+```
+live-panel/
+├── vercel.json              # 根配置：Vite 构建 + /ai-agency/api 路由
+├── api/ai-agency/[...path].py
+├── ai-agency/               # 本目录（专家团后端 + static）
+└── dist/ai-agency/          # npm run build 复制的静态页
+```
+
+### 同步到 live-panel 并推送
+
+在**能访问 GitHub 的机器**上执行：
+
+```bash
+# 1. 克隆 live-panel（若尚未克隆）
+git clone https://github.com/qq8147830/live-panel.git ~/live-panel
+
+# 2. 从本开发目录同步 ai-agency
+cd /Users/hh101/Desktop/2025HTML/Cursor/888-PromptX/-Deepduct--/21-NPC/ai-agency
+bash scripts/sync-to-live-panel.sh ~/live-panel
+
+# 3. 提交并推送
+cd ~/live-panel
+git add ai-agency vercel.json
+git commit -m "fix: sync ai-agency with embedded registry for Vercel"
+git push origin main
+```
+
+`sync-to-live-panel.sh` 会：
+- 复制 `ai-agency/`（排除 `venv`、`.env`、软链接 `data/agency-agents`）
+- 确保 `registry/registry.json` 为 **内嵌 prompt** 版本（`--embed-prompts`）
+- 修补根目录 `vercel.json`，让 Python Serverless 打包 `ai-agency/registry/**`
+
+### Vercel 环境变量（live-panel 项目）
+
+在 Vercel 项目 **Settings → Environment Variables** 添加：
+
+- `OPENAI_API_KEY`
+- `OPENAI_BASE_URL`
+- `MODEL_NAME`
+
+### 验证
+
+部署后访问：
+
+- 静态页：`https://live-panel-virid.vercel.app/ai-agency/`
+- 健康检查：`https://live-panel-virid.vercel.app/api/ai-agency/health`（生产环境请用此路径；`/ai-agency/api/*` rewrite 可能未生效）
+
+应看到 `"experts": 169`, `"embedded_prompts": true`。
+
+---
+
+## 部署到 Vercel（仅 ai-agency 独立调试，不推荐）
+
+以下为历史独立部署说明；生产环境请使用上文 **live-panel monorepo** 方式。
 
 ### 1. 导入 GitHub 仓库
 
@@ -318,9 +431,10 @@ bashbash---
 
 ### 4. 注意事项
 
+- **专家列表为空**：打开 `https://你的项目.vercel.app/api/health`，若 `experts: 0` 或 `registry_exists: false`，说明 `registry/registry.json` 未进仓库或未被打包；按上文执行 `--embed-prompts` 后重新提交并 Deploy
+- Vercel 项目 **Root Directory** 须设为 `ai-agency`（若从 monorepo 导入）
 - NEXUS-Micro 会连续调用 4 次 LLM，耗时较长；`vercel.json` 已设置 `maxDuration: 60` 秒
 - 免费版可能有超时限制，复杂任务建议本地运行或升级 Vercel 计划
-- 确保仓库内包含 `data/agency-agents` 专家数据
 
 ---
 

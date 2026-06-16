@@ -16,7 +16,7 @@ from expert_registry import ExpertRegistry, build_registry  # noqa: E402
 from llm import LLMClient, LLMConfig, estimate_seconds, normalize_thinking_mode  # noqa: E402
 from nexus_micro import INCIDENT_P1_PIPELINE, NexusMicroRunner  # noqa: E402
 from i18n import division_label, enrich_expert, expert_header  # noqa: E402
-from paths import PROJECT_ROOT, REGISTRY_PATH, resolve_agency_root  # noqa: E402
+from paths import PROJECT_ROOT, resolve_agency_root, resolve_registry_path  # noqa: E402
 
 
 class AgencyService:
@@ -24,14 +24,21 @@ class AgencyService:
         load_dotenv(PROJECT_ROOT / ".env", override=True)
         self.project_root = PROJECT_ROOT
         self.agency_root = resolve_agency_root()
-        self.registry_path = REGISTRY_PATH
+        self.registry_path = resolve_registry_path()
         self._ensure_registry()
         self.registry = ExpertRegistry(self.registry_path, project_root=self.project_root)
         self._factory: AgentFactory | None = None
 
     def _ensure_registry(self) -> None:
-        if not self.registry_path.exists() and self.agency_root.exists():
-            build_registry(self.agency_root, self.registry_path, project_root=self.project_root)
+        if self.registry_path.exists():
+            return
+        if self.agency_root.exists():
+            build_registry(
+                self.agency_root,
+                self.registry_path,
+                project_root=self.project_root,
+                embed_prompts=False,
+            )
 
     def _get_factory(self) -> AgentFactory:
         if self._factory is None:
@@ -50,8 +57,10 @@ class AgencyService:
         return agent, True
 
     def health(self) -> dict:
+        registry_exists = self.registry_path.exists()
+        embedded = getattr(self.registry, "embedded_prompts", False)
         return {
-            "status": "ok",
+            "status": "ok" if self.registry.experts else "degraded",
             "experts": len(self.registry.experts),
             "divisions": [
                 {"id": division, "label": division_label(division)}
@@ -60,7 +69,15 @@ class AgencyService:
             "agency_root": str(self.agency_root),
             "agency_exists": self.agency_root.exists(),
             "registry": str(self.registry_path),
+            "registry_exists": registry_exists,
+            "embedded_prompts": embedded,
+            "project_root": str(self.project_root),
             "thinking_modes": ["fast", "deep"],
+            "deploy_hint": (
+                None
+                if self.registry.experts
+                else "registry/registry.json missing or empty — commit embedded registry for Vercel"
+            ),
         }
 
     def list_experts(self, division: str = "", query: str = "", limit: int = 50) -> list[dict]:

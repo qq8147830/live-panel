@@ -2,6 +2,7 @@
   "version": 1,
   "source_root": "data/agency-agents",
   "expert_count": 169,
+  "embedded_prompts": false,
   "experts": [
     {
       "id": "academic-anthropologist",

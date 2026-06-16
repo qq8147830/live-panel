@@ -11,7 +11,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from expert_registry import build_registry  # noqa: E402
-from paths import PROJECT_ROOT, REGISTRY_PATH, resolve_agency_root  # noqa: E402
+from paths import PROJECT_ROOT, resolve_registry_path, resolve_agency_root  # noqa: E402
 
 
 def main() -> None:
@@ -25,8 +25,13 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=REGISTRY_PATH,
+        default=PROJECT_ROOT / "registry" / "registry.json",
         help="Output registry.json path",
+    )
+    parser.add_argument(
+        "--embed-prompts",
+        action="store_true",
+        help="Embed expert markdown bodies into registry.json (required for Vercel)",
     )
     args = parser.parse_args()
 
@@ -37,7 +42,12 @@ def main() -> None:
             "Run: bash scripts/setup_data.sh"
         )
 
-    payload = build_registry(agency_root, args.output, project_root=PROJECT_ROOT)
+    payload = build_registry(
+        agency_root,
+        args.output,
+        project_root=PROJECT_ROOT,
+        embed_prompts=args.embed_prompts,
+    )
     print(f"registry built: {args.output}")
     print(f"experts: {payload['expert_count']}")
     print(f"source:  {payload['source_root']}")

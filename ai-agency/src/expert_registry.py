@@ -92,6 +92,7 @@ def build_registry(
     agency_root: Path,
     output_path: Path,
     project_root: Path | None = None,
+    embed_prompts: bool = False,
 ) -> dict:
     project_root = project_root or output_path.parents[1]
     data_agency = project_root / "data" / "agency-agents"
@@ -106,11 +107,23 @@ def build_registry(
             source_root = str(agency_root.resolve())
 
     experts = scan_experts(agency_root, project_root=project_root, path_prefix=path_prefix)
+    expert_payloads: list[dict] = []
+    for expert in experts:
+        item = expert.to_dict()
+        if embed_prompts:
+            md_path = project_root / expert.file_path if not Path(expert.file_path).is_absolute() else Path(expert.file_path)
+            if md_path.exists():
+                content = md_path.read_text(encoding="utf-8")
+                _meta, body = _parse_frontmatter(content)
+                item["prompt_body"] = body
+        expert_payloads.append(item)
+
     payload = {
         "version": 1,
         "source_root": source_root,
-        "expert_count": len(experts),
-        "experts": [expert.to_dict() for expert in experts],
+        "expert_count": len(expert_payloads),
+        "embedded_prompts": embed_prompts,
+        "experts": expert_payloads,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -126,6 +139,7 @@ class ExpertRegistry:
         self.project_root = project_root or registry_path.parents[1]
         payload = json.loads(registry_path.read_text(encoding="utf-8"))
         self.source_root = payload.get("source_root", "")
+        self.embedded_prompts = bool(payload.get("embedded_prompts"))
         self.experts: list[ExpertProfile] = [
             ExpertProfile.from_dict(item) for item in payload.get("experts", [])
         ]
@@ -199,6 +213,10 @@ class ExpertRegistry:
     def load_system_prompt(self, expert: ExpertProfile) -> str:
         if expert.id in self._prompt_cache:
             return self._prompt_cache[expert.id]
+
+        if expert.prompt_body:
+            self._prompt_cache[expert.id] = expert.prompt_body
+            return expert.prompt_body
 
         path = self.resolve_prompt_path(expert)
         if not path.exists():

@@ -16,9 +16,10 @@ class ExpertProfile:
     vibe: str
     file_path: str
     prompt_path: str | None = None
+    prompt_body: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id,
             "name": self.name,
             "division": self.division,
@@ -29,6 +30,9 @@ class ExpertProfile:
             "file_path": self.file_path,
             "prompt_path": self.prompt_path,
         }
+        if self.prompt_body:
+            data["prompt_body"] = self.prompt_body
+        return data
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ExpertProfile:
@@ -42,6 +46,7 @@ class ExpertProfile:
             vibe=data.get("vibe", ""),
             file_path=data["file_path"],
             prompt_path=data.get("prompt_path"),
+            prompt_body=data.get("prompt_body"),
         )
 
 

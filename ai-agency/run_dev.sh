@@ -20,4 +20,5 @@ bash scripts/setup_data.sh
 
 PORT="${PORT:-18888}"
 echo "Starting AI Agency at http://127.0.0.1:${PORT}"
+echo "Serving from: $ROOT"
 exec uvicorn app.main:app --host 127.0.0.1 --port "$PORT" --reload
