@@ -4,3 +4,6 @@ __pycache__/
 .env
 .DS_Store
 *.log
+
+# 本地软链接，不提交；Vercel 使用 registry.json 内嵌 prompt
+data/agency-agents

@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "pip install -r requirements.txt && python scripts/build_registry.py --embed-prompts || echo 'using committed registry.json'",
+  "installCommand": "pip install -r requirements.txt",
   "builds": [
     {
       "src": "api/index.py",
@@ -17,7 +19,8 @@
   },
   "functions": {
     "api/index.py": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "{registry/**,data/locale_zh.json,static/**}"
     }
   }
 }

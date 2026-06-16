@@ -304,6 +304,12 @@
   </main>
 
   <script>
+    const API_BASE = (() => {
+      const path = window.location.pathname || '';
+      // Vercel 上 Python 函数挂在 /api/ai-agency/*；/ai-agency/api/* 的 rewrite 未生效
+      return path.includes('/ai-agency') ? '/api/ai-agency' : '/api';
+    })();
+
     const STORAGE_KEY = 'ai-agency-state-v1';
     const CHAT_EXAMPLES = [
       '帮我设计一个 SaaS 产品的 MVP 功能清单',
@@ -315,9 +321,6 @@
       'P1：数据库主从延迟飙升，写入失败率 8%',
       'P1：CDN 缓存污染导致静态资源 404，多区域受影响',
     ];
-
-    /** 集成在 live-panel 下为 /ai-agency，独立运行时为根路径 */
-    const API_BASE = location.pathname.startsWith('/ai-agency') ? '/ai-agency' : '';
 
     const state = {
       mode: 'chat',
@@ -524,13 +527,18 @@
     }
 
     async function loadHealth() {
-      const res = await fetch(`${API_BASE}/api/health`);
+      const res = await fetch(`${API_BASE}/health`);
       const data = await res.json();
-      els.statusText.textContent = `专家 ${data.experts} 位 · 领域 ${data.divisions.length} 个`;
+      const degraded = data.status === 'degraded' || !data.experts;
+      els.statusText.textContent = degraded
+        ? `专家数据未加载（0 位）· 请检查 Vercel 是否提交了 registry/registry.json`
+        : `专家 ${data.experts} 位 · 领域 ${data.divisions.length} 个${data.embedded_prompts ? ' · 内嵌 prompt' : ''}`;
+      if (data.deploy_hint) console.warn('[ai-agency]', data.deploy_hint);
+      return data;
     }
 
     async function loadPipeline() {
-      const res = await fetch(`${API_BASE}/api/micro/pipeline`);
+      const res = await fetch(`${API_BASE}/micro/pipeline`);
       const data = await res.json();
       state.pipeline = data.steps || [];
       renderMicroGuide();
@@ -560,14 +568,33 @@
       const params = new URLSearchParams({ limit: '80' });
       if (division) params.set('division', division);
       if (query) params.set('query', query);
-      const res = await fetch(`${API_BASE}/api/experts?${params}`);
+      const res = await fetch(`${API_BASE}/experts?${params}`);
       const data = await res.json();
+      if (!res.ok) {
+        state.experts = [];
+        renderExperts();
+        renderExpertLoadError(data.detail || '专家列表加载失败');
+        return;
+      }
       state.experts = data.experts || [];
       renderExperts();
+      if (!state.experts.length) {
+        renderExpertLoadError('专家列表为空。Vercel 部署需提交 registry/registry.json（建议 --embed-prompts 构建）。');
+      }
+    }
+
+    function renderExpertLoadError(message) {
+      if (document.getElementById('expertLoadError')) return;
+      const item = document.createElement('div');
+      item.id = 'expertLoadError';
+      item.className = 'expert-item';
+      item.innerHTML = `<div class="name" style="color:var(--danger)">⚠️ 专家数据未就绪</div><div class="meta">${escapeHtml(message)}</div>`;
+      els.expertList.prepend(item);
     }
 
     function renderExperts() {
       els.expertList.innerHTML = '';
+      document.getElementById('expertLoadError')?.remove();
       const auto = document.createElement('div');
       auto.className = `expert-item ${!state.selectedExpertId ? 'active' : ''}`;
       auto.innerHTML = '<div class="name">自动路由</div><div class="meta">根据问题匹配最合适专家</div>';
@@ -649,7 +676,7 @@
     }
 
     async function sendChatStream(text, signal) {
-      const res = await fetch(`${API_BASE}/api/chat/stream`, {
+      const res = await fetch(`${API_BASE}/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -716,7 +743,7 @@
     }
 
     async function sendChatFallback(text, signal) {
-      const res = await fetch(`${API_BASE}/api/chat`, {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -737,7 +764,7 @@
     }
 
     async function sendMicro(text, signal) {
-      const res = await fetch(`${API_BASE}/api/micro`, {
+      const res = await fetch(`${API_BASE}/micro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -825,7 +852,7 @@
       loadState();
       renderThinkingToggle();
       await loadHealth();
-      const healthRes = await fetch(`${API_BASE}/api/health`);
+      const healthRes = await fetch(`${API_BASE}/health`);
       const health = await healthRes.json();
       (health.divisions || []).forEach((division) => {
         const option = document.createElement('option');
