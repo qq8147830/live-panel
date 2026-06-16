@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# AI Agency (Python)
+ai-agency/venv/
+ai-agency/.env
+ai-agency/__pycache__/
+ai-agency/**/__pycache__/
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +29,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vercel

@@ -1,5 +1,22 @@
 # 更新日志
 
+## [2.2.0] - 2026-06-16
+
+### ✨ 新增
+
+- **AI Agency 专家团**子模块（`ai-agency/`）
+  - 集成至 `/ai-agency/`，169 位专家对话 + NEXUS-Micro 流水线
+  - splash 启动页新增「AI Agency 专家团」入口按钮（TeachZhao 右侧，紫金色粒子风）
+  - Vite 插件 `scripts/ai-agency-plugin.js`（dev 静态托管 + API 代理至 18888）
+  - Vercel Python Serverless：`api/ai-agency/[...path].py`
+- **专家数据**：`data/agency-agents/` 直接复制进仓库（约 6.5MB），含 `registry/registry.json`
+- **npm 脚本**：`dev:ai-agency`
+
+### 🔧 优化
+
+- `vercel.json` 增加 `/ai-agency/` 路由与 Python 函数 `maxDuration: 60`
+- `.gitignore` 忽略 `ai-agency/venv/`、`.env`
+
 ## [2.1.1] - 2026-06-15
 
 ### 🐛 修复

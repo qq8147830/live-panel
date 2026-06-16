@@ -1209,6 +1209,15 @@ function enterTeachZhao() {
 }
 
 /**
+ * 进入 AI Agency 专家团
+ */
+function enterAiAgency() {
+  const targetUrl = '/ai-agency/';
+  log(`正在打开 AI Agency: ${targetUrl}`);
+  window.open(targetUrl, '_blank', 'noopener,noreferrer');
+}
+
+/**
  * 进入主应用
  */
 function enterMainApp() {
@@ -1270,6 +1279,21 @@ function init() {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         enterTeachZhao();
+      }
+    });
+  }
+
+  const aiAgencyBtn = document.getElementById('ai-agency-btn');
+  if (aiAgencyBtn) {
+    aiAgencyBtn.addEventListener('click', (e) => {
+      log('用户点击了 AI Agency 入口');
+      e.preventDefault();
+      enterAiAgency();
+    });
+    aiAgencyBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        enterAiAgency();
       }
     });
   }

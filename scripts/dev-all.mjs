@@ -19,7 +19,7 @@ function run(name, script) {
   return child;
 }
 
-console.log("[dev:all] Starting Socket.IO server + Vite (with TeachZhao at /teachzhao/)");
+console.log("[dev:all] Starting Socket.IO server + Vite (TeachZhao /ai-agency/ + AI Agency API 需另开: npm run dev:ai-agency)");
 run("server", "server");
 run("vite", "dev");
 

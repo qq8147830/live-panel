@@ -1,6 +1,6 @@
 {
   "name": "ai-digital-human-live-panel",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Hai AI BotClaw控制面板 - 商用级前端界面",
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "server": "node server/index.js",
     "dev:teachzhao": "node teachzhao/server.js",
+    "dev:ai-agency": "cd ai-agency && bash run_dev.sh",
     "dev:all": "node scripts/dev-all.mjs",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },

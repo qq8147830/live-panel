@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agency 专家团</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2e;
+      --panel-2: #17233b;
+      --border: #24324f;
+      --text: #e8eefc;
+      --muted: #93a4c7;
+      --accent: #4f8cff;
+      --accent-2: #22c55e;
+      --danger: #f97316;
+      --deep: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #15213a 0%, var(--bg) 45%);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+    }
+    .sidebar {
+      width: 300px;
+      background: rgba(17, 26, 46, 0.95);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 16px;
+      min-height: 0;
+    }
+    .brand h1 { margin: 0; font-size: 20px; }
+    .brand p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .mode-tabs { display: flex; gap: 8px; }
+    .mode-tabs button {
+      flex: 1;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .mode-tabs button.active {
+      border-color: var(--accent);
+      background: rgba(79, 140, 255, 0.15);
+    }
+    .filters input, .filters select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+    .expert-list, .micro-guide {
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+      min-height: 0;
+    }
+    .expert-item, .pipeline-step {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .expert-item { cursor: pointer; }
+    .expert-item.active { border-color: var(--accent); }
+    .expert-item .name, .pipeline-step .name { font-weight: 600; font-size: 14px; }
+    .expert-item .meta, .pipeline-step .meta { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+    .pipeline-step .step-num {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid rgba(79, 140, 255, 0.4);
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-bottom: 6px;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .topbar {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .status { color: var(--muted); font-size: 13px; }
+    .thinking-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .thinking-toggle button {
+      border: none;
+      background: var(--panel-2);
+      color: var(--muted);
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .thinking-toggle button.active {
+      background: rgba(79, 140, 255, 0.2);
+      color: var(--text);
+    }
+    .thinking-toggle button.active.deep {
+      background: rgba(167, 139, 250, 0.2);
+      color: #ddd6fe;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .msg {
+      max-width: 85%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      position: relative;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: white;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: rgba(23, 35, 59, 0.95);
+      border: 1px solid var(--border);
+    }
+    .msg.status-bubble {
+      align-self: center;
+      max-width: 92%;
+      background: rgba(79, 140, 255, 0.08);
+      border: 1px dashed rgba(79, 140, 255, 0.35);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+    .msg.error {
+      border-color: rgba(249, 115, 22, 0.5);
+      background: rgba(249, 115, 22, 0.08);
+    }
+    .msg .badge {
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .msg .meta-line {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .msg-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .msg-actions button {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .msg-actions button:hover { color: var(--text); border-color: var(--accent); }
+    .example-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 20px 8px;
+    }
+    .example-chips button {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .example-chips button:hover { color: var(--text); border-color: var(--accent); }
+    .composer {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .composer textarea {
+      flex: 1;
+      min-height: 56px;
+      max-height: 180px;
+      resize: vertical;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+    }
+    .composer-actions { display: flex; flex-direction: column; gap: 8px; }
+    .composer button {
+      min-width: 96px;
+      border: none;
+      border-radius: 14px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 12px 16px;
+    }
+    .composer button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .composer button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .hint { color: var(--muted); font-size: 12px; padding: 0 20px 12px; }
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: 38vh; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>AI Agency 专家团</h1>
+      <p>基于 agency-agents 的多智能体系统。支持单专家对话与 NEXUS-Micro 事故响应流水线。</p>
+    </div>
+    <div class="mode-tabs">
+      <button id="modeChat" class="active" type="button">单专家</button>
+      <button id="modeMicro" type="button">NEXUS-Micro</button>
+    </div>
+    <div class="filters" id="filters">
+      <label>搜索专家
+        <input id="searchInput" placeholder="例如 frontend / 前端 / 微博 / 设计" />
+      </label>
+      <label>领域
+        <select id="divisionSelect">
+          <option value="">全部领域</option>
+        </select>
+      </label>
+    </div>
+    <div class="expert-list" id="expertList"></div>
+    <div class="micro-guide" id="microGuide" hidden></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <strong id="modeLabel">单专家模式</strong>
+        <div class="status" id="statusText">正在连接...</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="thinking-toggle" id="thinkingToggle">
+          <button type="button" data-mode="fast" class="active">快速模式</button>
+          <button type="button" data-mode="deep">深度思考</button>
+        </div>
+        <div class="status" id="selectedExpert">自动路由</div>
+      </div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="example-chips" id="exampleChips"></div>
+    <div class="hint" id="hintText">单专家模式：不选专家时将自动路由。</div>
+    <div class="composer">
+      <textarea id="input" placeholder="输入你的问题或事故描述..."></textarea>
+      <div class="composer-actions">
+        <button id="sendBtn" type="button">发送</button>
+        <button id="cancelBtn" type="button" class="secondary" hidden>取消</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'ai-agency-state-v1';
+    const CHAT_EXAMPLES = [
+      '帮我设计一个 SaaS 产品的 MVP 功能清单',
+      '微博运营策略：新品牌冷启动怎么做？',
+      '前端性能优化：首屏加载慢的排查思路',
+    ];
+    const MICRO_EXAMPLES = [
+      'P1：生产环境 API 502，影响全部用户下单，15 分钟前开始',
+      'P1：数据库主从延迟飙升，写入失败率 8%',
+      'P1：CDN 缓存污染导致静态资源 404，多区域受影响',
+    ];
+
+    /** 集成在 live-panel 下为 /ai-agency，独立运行时为根路径 */
+    const API_BASE = location.pathname.startsWith('/ai-agency') ? '/ai-agency' : '';
+
+    const state = {
+      mode: 'chat',
+      experts: [],
+      selectedExpertId: '',
+      thinkingMode: 'fast',
+      loading: false,
+      pipeline: [],
+      messages: [],
+      abortController: null,
+      waitTimer: null,
+      lastFailedRequest: null,
+    };
+
+    const els = {
+      modeChat: document.getElementById('modeChat'),
+      modeMicro: document.getElementById('modeMicro'),
+      filters: document.getElementById('filters'),
+      searchInput: document.getElementById('searchInput'),
+      divisionSelect: document.getElementById('divisionSelect'),
+      expertList: document.getElementById('expertList'),
+      microGuide: document.getElementById('microGuide'),
+      messages: document.getElementById('messages'),
+      input: document.getElementById('input'),
+      sendBtn: document.getElementById('sendBtn'),
+      cancelBtn: document.getElementById('cancelBtn'),
+      statusText: document.getElementById('statusText'),
+      selectedExpert: document.getElementById('selectedExpert'),
+      modeLabel: document.getElementById('modeLabel'),
+      hintText: document.getElementById('hintText'),
+      exampleChips: document.getElementById('exampleChips'),
+      thinkingToggle: document.getElementById('thinkingToggle'),
+    };
+
+    function saveState() {
+      const payload = {
+        mode: state.mode,
+        thinkingMode: state.thinkingMode,
+        selectedExpertId: state.selectedExpertId,
+        messages: state.messages.slice(-40),
+      };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (_) {}
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data.thinkingMode) state.thinkingMode = data.thinkingMode;
+        if (data.mode) state.mode = data.mode;
+        if (data.selectedExpertId) state.selectedExpertId = data.selectedExpertId;
+        if (Array.isArray(data.messages)) state.messages = data.messages;
+      } catch (_) {}
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    }
+
+    function formatElapsed(ms) {
+      if (ms < 1000) return `${ms} 毫秒`;
+      return `${(ms / 1000).toFixed(1)} 秒`;
+    }
+
+    function estimateLabel(mode, micro = false) {
+      const fast = micro ? [32, 60] : [8, 15];
+      const deep = micro ? [100, 240] : [25, 60];
+      const [lo, hi] = mode === 'deep' ? deep : fast;
+      return `${lo}–${hi} 秒`;
+    }
+
+    function renderThinkingToggle() {
+      els.thinkingToggle.querySelectorAll('button').forEach((btn) => {
+        const active = btn.dataset.mode === state.thinkingMode;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('deep', active && state.thinkingMode === 'deep');
+      });
+    }
+
+    function createAssistantNode(content, options = {}) {
+      const node = document.createElement('div');
+      node.className = `msg assistant${options.error ? ' error' : ''}`;
+      const badge = options.badge ? `<div class="badge">${escapeHtml(options.badge)}</div>` : '';
+      const meta = options.meta ? `<div class="meta-line">${escapeHtml(options.meta)}</div>` : '';
+      const actions = options.copyable !== false
+        ? `<div class="msg-actions"><button type="button" data-copy>复制</button></div>`
+        : '';
+      node.innerHTML = `${badge}<div class="msg-body">${escapeHtml(content)}</div>${meta}${actions}`;
+      if (options.copyable !== false) {
+        node.querySelector('[data-copy]').onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(content);
+            node.querySelector('[data-copy]').textContent = '已复制';
+            setTimeout(() => { node.querySelector('[data-copy]').textContent = '复制'; }, 1500);
+          } catch (_) {}
+        };
+      }
+      return node;
+    }
+
+    function appendToHistory(role, content, extra = {}) {
+      state.messages.push({ role, content, ...extra });
+      saveState();
+    }
+
+    function renderMessagesFromState() {
+      els.messages.innerHTML = '';
+      if (!state.messages.length) showWelcome();
+      else state.messages.forEach((item) => {
+        if (item.role === 'user') addMessage('user', item.content, { persist: false });
+        else addMessage('assistant', item.content, { persist: false, badge: item.badge, meta: item.meta });
+      });
+    }
+
+    function showWelcome() {
+      const isDeep = state.thinkingMode === 'deep';
+      const isMicro = state.mode === 'micro';
+      let text = '';
+      if (isMicro) {
+        text = isDeep
+          ? 'NEXUS-Micro 深度思考模式：4 位专家将依次进行更严谨的逐步推理，整体耗时会更长。完成后一次性展示 4 步结果。'
+          : 'NEXUS-Micro：P1 事故响应流水线，4 位专家依次协作。请求期间会显示等待计时，完成后一次性展示全部步骤。';
+      } else {
+        text = isDeep
+          ? '深度思考模式：专家会先逐步推理再作答，响应更慢但通常更严谨。支持流式输出。'
+          : '你好，我是 AI Agency 专家团。你可以直接提问（自动路由专家），或在左侧点选专家。下方示例问题可一键填入。';
+      }
+      addMessage('assistant', text, { copyable: false, persist: false });
+    }
+
+    function addMessage(role, content, options = {}) {
+      const { badge = '', meta = '', persist = true, copyable = true, error = false } = options;
+      if (role === 'user') {
+        const node = document.createElement('div');
+        node.className = 'msg user';
+        node.textContent = content;
+        els.messages.appendChild(node);
+      } else {
+        const node = createAssistantNode(content, { badge, meta, copyable, error });
+        els.messages.appendChild(node);
+      }
+      els.messages.scrollTop = els.messages.scrollHeight;
+      if (persist) appendToHistory(role, content, { badge, meta });
+    }
+
+    function addStatusBubble(text) {
+      const node = document.createElement('div');
+      node.className = 'msg status-bubble';
+      node.id = 'statusBubble';
+      node.textContent = text;
+      els.messages.appendChild(node);
+      els.messages.scrollTop = els.messages.scrollHeight;
+      return node;
+    }
+
+    function updateStatusBubble(text) {
+      const node = document.getElementById('statusBubble');
+      if (node) node.textContent = text;
+    }
+
+    function removeStatusBubble() {
+      document.getElementById('statusBubble')?.remove();
+    }
+
+    function startWaitTimer(mode, micro = false) {
+      const start = Date.now();
+      const est = estimateLabel(mode, micro);
+      addStatusBubble(`处理中… 已等待 0 秒 · 预计 ${est}`);
+      state.waitTimer = setInterval(() => {
+        const secs = Math.floor((Date.now() - start) / 1000);
+        updateStatusBubble(`处理中… 已等待 ${secs} 秒 · 预计 ${est}${mode === 'deep' ? ' · 深度思考' : ''}`);
+      }, 1000);
+    }
+
+    function stopWaitTimer() {
+      if (state.waitTimer) {
+        clearInterval(state.waitTimer);
+        state.waitTimer = null;
+      }
+      removeStatusBubble();
+    }
+
+    function setLoading(loading) {
+      state.loading = loading;
+      els.sendBtn.disabled = loading;
+      els.cancelBtn.hidden = !loading;
+    }
+
+    function renderExampleChips() {
+      const examples = state.mode === 'micro' ? MICRO_EXAMPLES : CHAT_EXAMPLES;
+      els.exampleChips.innerHTML = '';
+      examples.forEach((text) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = text.length > 28 ? `${text.slice(0, 28)}…` : text;
+        btn.title = text;
+        btn.onclick = () => { els.input.value = text; els.input.focus(); };
+        els.exampleChips.appendChild(btn);
+      });
+    }
+
+    async function loadHealth() {
+      const res = await fetch(`${API_BASE}/api/health`);
+      const data = await res.json();
+      els.statusText.textContent = `专家 ${data.experts} 位 · 领域 ${data.divisions.length} 个`;
+    }
+
+    async function loadPipeline() {
+      const res = await fetch(`${API_BASE}/api/micro/pipeline`);
+      const data = await res.json();
+      state.pipeline = data.steps || [];
+      renderMicroGuide();
+    }
+
+    function renderMicroGuide() {
+      els.microGuide.innerHTML = '';
+      if (!state.pipeline.length) {
+        els.microGuide.innerHTML = '<div class="pipeline-step"><div class="meta">加载流水线说明…</div></div>';
+        return;
+      }
+      state.pipeline.forEach((step) => {
+        const item = document.createElement('div');
+        item.className = 'pipeline-step';
+        item.innerHTML = `
+          <div class="step-num">Step ${step.step}</div>
+          <div class="name">${escapeHtml(step.agent_label || step.agent_name)}</div>
+          <div class="meta">${escapeHtml(step.role)}</div>
+        `;
+        els.microGuide.appendChild(item);
+      });
+    }
+
+    async function loadExperts() {
+      const division = els.divisionSelect.value;
+      const query = els.searchInput.value.trim();
+      const params = new URLSearchParams({ limit: '80' });
+      if (division) params.set('division', division);
+      if (query) params.set('query', query);
+      const res = await fetch(`${API_BASE}/api/experts?${params}`);
+      const data = await res.json();
+      state.experts = data.experts || [];
+      renderExperts();
+    }
+
+    function renderExperts() {
+      els.expertList.innerHTML = '';
+      const auto = document.createElement('div');
+      auto.className = `expert-item ${!state.selectedExpertId ? 'active' : ''}`;
+      auto.innerHTML = '<div class="name">自动路由</div><div class="meta">根据问题匹配最合适专家</div>';
+      auto.onclick = () => {
+        state.selectedExpertId = '';
+        els.selectedExpert.textContent = '自动路由';
+        saveState();
+        renderExperts();
+      };
+      els.expertList.appendChild(auto);
+
+      state.experts.forEach((expert) => {
+        const item = document.createElement('div');
+        item.className = `expert-item ${state.selectedExpertId === expert.id ? 'active' : ''}`;
+        item.innerHTML = `
+          <div class="name">${expert.emoji || '🎭'} ${escapeHtml(expert.label || expert.name)}</div>
+          <div class="meta">${escapeHtml(expert.division_label || expert.division)} · ${escapeHtml((expert.description || '').slice(0, 72))}</div>
+        `;
+        item.onclick = () => {
+          state.selectedExpertId = expert.id;
+          els.selectedExpert.textContent = `${expert.label || expert.name} (${expert.id})`;
+          saveState();
+          renderExperts();
+        };
+        els.expertList.appendChild(item);
+      });
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      els.modeChat.classList.toggle('active', mode === 'chat');
+      els.modeMicro.classList.toggle('active', mode === 'micro');
+      els.filters.hidden = mode !== 'chat';
+      els.expertList.hidden = mode !== 'chat';
+      els.microGuide.hidden = mode !== 'micro';
+      els.modeLabel.textContent = mode === 'chat' ? '单专家模式' : 'NEXUS-Micro 模式';
+
+      const isDeep = state.thinkingMode === 'deep';
+      if (mode === 'chat') {
+        els.hintText.textContent = isDeep
+          ? '深度思考：单专家逐步推理，支持流式输出。'
+          : '单专家模式：不选专家时将自动路由。';
+        if (!state.selectedExpertId) els.selectedExpert.textContent = '自动路由';
+      } else {
+        els.hintText.textContent = isDeep
+          ? 'NEXUS-Micro 深度思考：4 步均使用深度模式，完成后一次性展示。'
+          : 'NEXUS-Micro：P1 事故响应 4 步协作，等待期间显示计时。';
+        els.selectedExpert.textContent = 'incident-response / P1';
+      }
+      renderExampleChips();
+      saveState();
+    }
+
+    function setThinkingMode(mode) {
+      state.thinkingMode = mode;
+      renderThinkingToggle();
+      setMode(state.mode);
+      saveState();
+    }
+
+    function showErrorWithRetry(message, retryFn) {
+      const node = createAssistantNode(message, { error: true, badge: '请求失败' });
+      const retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.textContent = '重试';
+      retryBtn.onclick = () => {
+        node.remove();
+        retryFn();
+      };
+      const actions = node.querySelector('.msg-actions') || (() => {
+        const wrap = document.createElement('div');
+        wrap.className = 'msg-actions';
+        node.appendChild(wrap);
+        return wrap;
+      })();
+      actions.appendChild(retryBtn);
+      els.messages.appendChild(node);
+      els.messages.scrollTop = els.messages.scrollHeight;
+    }
+
+    async function sendChatStream(text, signal) {
+      const res = await fetch(`${API_BASE}/api/chat/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          expert_id: state.selectedExpertId,
+          thinking_mode: state.thinkingMode,
+        }),
+        signal,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || '请求失败');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let meta = null;
+      let assistantNode = null;
+      let bodyEl = null;
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const event = JSON.parse(line.slice(6));
+          if (event.type === 'error') throw new Error(event.detail || '流式请求失败');
+          if (event.type === 'meta') {
+            meta = event;
+            stopWaitTimer();
+            assistantNode = document.createElement('div');
+            assistantNode.className = 'msg assistant';
+            const badge = `${meta.expert_label || meta.expert_name}${meta.routed ? ' · 自动路由' : ''}${meta.thinking_mode === 'deep' ? ' · 深度思考' : ''}`;
+            assistantNode.innerHTML = `<div class="badge">${escapeHtml(badge)}</div><div class="msg-body"></div><div class="msg-actions"><button type="button" data-copy>复制</button></div>`;
+            bodyEl = assistantNode.querySelector('.msg-body');
+            els.messages.appendChild(assistantNode);
+          }
+          if (event.type === 'chunk' && bodyEl) {
+            fullText += event.content;
+            bodyEl.textContent = fullText;
+            els.messages.scrollTop = els.messages.scrollHeight;
+          }
+          if (event.type === 'done') {
+            const metaLine = `耗时 ${formatElapsed(event.elapsed_ms)} · ${state.thinkingMode === 'deep' ? '深度思考' : '快速模式'}`;
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'meta-line';
+            metaDiv.textContent = metaLine;
+            assistantNode?.appendChild(metaDiv);
+            assistantNode?.querySelector('[data-copy]')?.addEventListener('click', async () => {
+              try { await navigator.clipboard.writeText(fullText || event.response); } catch (_) {}
+            });
+            appendToHistory('assistant', fullText || event.response, {
+              badge: meta ? `${meta.expert_label || meta.expert_name}${meta.routed ? ' · 自动路由' : ''}` : '',
+              meta: metaLine,
+            });
+          }
+        }
+      }
+    }
+
+    async function sendChatFallback(text, signal) {
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          expert_id: state.selectedExpertId,
+          thinking_mode: state.thinkingMode,
+        }),
+        signal,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || '请求失败');
+      stopWaitTimer();
+      const meta = `耗时 ${formatElapsed(data.elapsed_ms)} · ${data.thinking_mode === 'deep' ? '深度思考' : '快速模式'}`;
+      addMessage('assistant', data.response, {
+        badge: `${data.expert_label || data.expert_name}${data.routed ? ' · 自动路由' : ''}${data.thinking_mode === 'deep' ? ' · 深度思考' : ''}`,
+        meta,
+      });
+    }
+
+    async function sendMicro(text, signal) {
+      const res = await fetch(`${API_BASE}/api/micro`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          incident: text,
+          thinking_mode: state.thinkingMode,
+        }),
+        signal,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || '请求失败');
+      stopWaitTimer();
+      const totalMeta = `总耗时 ${formatElapsed(data.elapsed_ms)} · ${data.thinking_mode === 'deep' ? '深度思考 ×4' : '快速模式 ×4'}`;
+      (data.steps || []).forEach((step, index) => {
+        addMessage('assistant', step.content, {
+          badge: `Step ${index + 1} · ${step.agent_label || step.agent_name}`,
+          meta: index === (data.steps.length - 1) ? totalMeta : '',
+        });
+      });
+    }
+
+    async function sendMessage(retryText) {
+      const text = (retryText || els.input.value).trim();
+      if (!text || state.loading) return;
+
+      state.lastFailedRequest = null;
+      if (!retryText) {
+        addMessage('user', text);
+        els.input.value = '';
+      }
+
+      state.abortController = new AbortController();
+      setLoading(true);
+      startWaitTimer(state.thinkingMode, state.mode === 'micro');
+
+      const doSend = async () => {
+        try {
+          if (state.mode === 'chat') {
+            try {
+              await sendChatStream(text, state.abortController.signal);
+            } catch (streamErr) {
+              if (streamErr.name === 'AbortError') throw streamErr;
+              await sendChatFallback(text, state.abortController.signal);
+            }
+          } else {
+            await sendMicro(text, state.abortController.signal);
+          }
+        } catch (error) {
+          stopWaitTimer();
+          if (error.name === 'AbortError') {
+            addMessage('assistant', '已取消请求。', { copyable: false });
+            return;
+          }
+          state.lastFailedRequest = text;
+          showErrorWithRetry(`错误：${error.message}`, () => sendMessage(state.lastFailedRequest));
+        } finally {
+          setLoading(false);
+          state.abortController = null;
+        }
+      };
+
+      await doSend();
+    }
+
+    function cancelRequest() {
+      state.abortController?.abort();
+    }
+
+    els.modeChat.onclick = () => setMode('chat');
+    els.modeMicro.onclick = () => setMode('micro');
+    els.sendBtn.onclick = () => sendMessage();
+    els.cancelBtn.onclick = cancelRequest;
+    els.searchInput.oninput = () => loadExperts();
+    els.divisionSelect.onchange = () => loadExperts();
+    els.thinkingToggle.querySelectorAll('button').forEach((btn) => {
+      btn.onclick = () => setThinkingMode(btn.dataset.mode);
+    });
+    els.input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+    async function init() {
+      loadState();
+      renderThinkingToggle();
+      await loadHealth();
+      const healthRes = await fetch(`${API_BASE}/api/health`);
+      const health = await healthRes.json();
+      (health.divisions || []).forEach((division) => {
+        const option = document.createElement('option');
+        if (typeof division === 'string') {
+          option.value = division;
+          option.textContent = division;
+        } else {
+          option.value = division.id;
+          option.textContent = division.label;
+        }
+        els.divisionSelect.appendChild(option);
+      });
+      await Promise.all([loadExperts(), loadPipeline()]);
+      setMode(state.mode);
+      if (state.messages.length) renderMessagesFromState();
+      else showWelcome();
+    }
+
+    init();
+  </script>
+</body>
+</html>

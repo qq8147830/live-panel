@@ -8,10 +8,11 @@
 - **登录 / 启动页** — 数字人启动动画与登录流程
 - **直播控制面板** — Vue 3 商用级控制台（3D 数字人、话术大屏、WebSocket）
 - **TeachZhao 数字分身** — 内嵌 AI 教师角色系统子模块
+- **AI Agency 专家团** — 内嵌多智能体专家对话系统（169+ 专家）
 
-后端提供 Socket.IO 实时通信与 TeachZhao API，当前部分能力为 echo / 规则模板模拟，可扩展接入真实大模型与语音合成。
+后端提供 Socket.IO 实时通信与 TeachZhao API；AI Agency 提供 Python FastAPI 专家对话 API，当前部分能力为 echo / 规则模板模拟，可扩展接入真实大模型与语音合成。
 
-**当前版本：2.1.1**（2026-06-15）
+**当前版本：2.2.0**（2026-06-16）
 
 ---
 
@@ -20,9 +21,10 @@
 | 模块 | 入口 | 说明 |
 |------|------|------|
 | 产品官网 | `index.html` | 静态落地页：CAPABILITIES、朋友圈、7 天指南、工作记录、关于我们 |
-| 登录 / 启动页 | `splash.html` | 启动动画、登录弹层；可进入控制面板或 **TeachZhao 数字分身**（`/teachzhao/`） |
+| 登录 / 启动页 | `splash.html` | 启动动画、登录弹层；可进入控制面板、**TeachZhao**（`/teachzhao/`）或 **AI Agency 专家团**（`/ai-agency/`） |
 | 控制面板（主应用） | `app.html` | Vue 3：3D 数字人、话术大屏、控制面板、Socket.IO |
 | **TeachZhao 数字分身** | `/teachzhao/` | AI 教师角色系统（Hash SPA，见 `teachzhao/`） |
+| **AI Agency 专家团** | `/ai-agency/` | 169+ 专家对话 + NEXUS-Micro（FastAPI，见 `ai-agency/`） |
 | 实时服务 | `server/index.js` | Express + Socket.IO + TeachZhao API，默认端口 **3001** |
 
 推荐访问路径：
@@ -30,6 +32,7 @@
 ```text
 官网 index.html → splash.html（Login）→ app.html（控制面板）
 官网 index.html → /teachzhao/（TeachZhao 数字分身，CAPABILITIES 区按钮新窗口打开）
+splash.html → /ai-agency/（AI Agency 专家团，启动页按钮新窗口打开）
 ```
 
 ---
@@ -40,6 +43,7 @@
 |------|------|
 | Node.js | **18+**（推荐 20+） |
 | npm | **9+**（或 pnpm / yarn） |
+| Python | **3.11+**（AI Agency 本地 API，可选） |
 | 浏览器 | Chrome / Edge / Safari / Firefox 现代版本 |
 
 ```bash
@@ -68,6 +72,7 @@ npm run dev
 - `host: true`（局域网可访问）
 - 默认自动打开：**`/app.html`**（控制面板）
 - **同时托管 TeachZhao**：http://localhost:5173/teachzhao/
+- **同时托管 AI Agency 静态页**：http://localhost:5173/ai-agency/（API 需另开 `npm run dev:ai-agency`）
 
 ### 3. 启动后端（Socket.IO，控制面板推荐）
 
@@ -98,22 +103,37 @@ npm run dev:teachzhao
 
 在 **4173** 端口运行 `teachzhao/server.js`，不依赖 Vite。
 
-### 6. 构建与预览
+### 6. AI Agency 专家团（Python API）
+
+**首次**在 `ai-agency/` 下已有专家数据与 `.env`（本地从原项目复制，勿提交 Git）。
 
 ```bash
-npm run build    # 产物含 dist/teachzhao/
-npm run preview  # 预览生产包（含 /teachzhao/）
+# 终端 1：Vite（已托管 /ai-agency/ 静态页）
+npm run dev
+
+# 终端 2：AI Agency FastAPI（18888）
+npm run dev:ai-agency
+```
+
+浏览器打开 http://localhost:5173/ai-agency/ ，或从 splash 启动页点击「AI Agency 专家团」。
+
+### 7. 构建与预览
+
+```bash
+npm run build    # 产物含 dist/teachzhao/、dist/ai-agency/
+npm run preview  # 预览生产包（含 /teachzhao/、/ai-agency/）
 ```
 
 ### npm 脚本一览
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev` | Vite 开发服务器（5173），含 TeachZhao |
+| `npm run dev` | Vite 开发服务器（5173），含 TeachZhao、AI Agency 静态 |
 | `npm run dev:all` | Socket.IO + Vite，推荐 |
 | `npm run dev:teachzhao` | 仅 TeachZhao（4173） |
+| `npm run dev:ai-agency` | AI Agency FastAPI（18888） |
 | `npm run server` | Express 后端（3001） |
-| `npm run build` | 构建控制面板并复制 TeachZhao |
+| `npm run build` | 构建控制面板并复制 TeachZhao、AI Agency |
 | `npm run preview` | 预览 dist |
 | `npm run lint` | ESLint 检查 |
 
@@ -129,8 +149,9 @@ npm run preview  # 预览生产包（含 /teachzhao/）
 | 产品官网 | http://localhost:5173/index.html | 品牌落地页 |
 | 登录 / 启动页 | http://localhost:5173/splash.html | 启动动画与登录 |
 | **TeachZhao** | http://localhost:5173/teachzhao/ | AI 教师角色系统 |
+| **AI Agency 专家团** | http://localhost:5173/ai-agency/ | 169+ 专家对话（需 `dev:ai-agency`） |
 
-官网 **CAPABILITIES · 我能做什么** 右侧按钮「进入 TeachZhao 数字分身智能体」会在**新窗口**打开 `/teachzhao/`（粒子科技风样式，`min-height: 2.75rem`）。
+splash 启动页按钮「进入 TeachZhao 数字分身智能体」「AI Agency 专家团」会在**新窗口**打开对应路径。
 
 TeachZhao 顶栏 **「🦍 长右灵」** 可返回 `/index.html`。
 
@@ -483,7 +504,8 @@ lsof -ti:3001 | xargs kill -9
 2. http://localhost:5173/app.html 正常渲染
 3. `npm run server` 后 WebSocket 已连接
 4. http://localhost:5173/teachzhao/ 可打开且对话有响应
-5. 官网 CAPABILITIES 按钮新窗口可打开 TeachZhao
+5. http://localhost:5173/ai-agency/ 可打开且显示「专家 169 位」（需 `npm run dev:ai-agency`）
+6. splash 启动页两个子模块按钮新窗口可打开
 
 ---
 
@@ -499,10 +521,23 @@ lsof -ti:3001 | xargs kill -9
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/teachzhao/api/:endpoint", "destination": "/api/teachzhao/:endpoint" },
-    { "source": "/teachzhao", "destination": "/teachzhao/index.html" }
+    { "source": "/teachzhao", "destination": "/teachzhao/index.html" },
+    { "source": "/ai-agency/api/:path*", "destination": "/api/ai-agency/:path*" },
+    { "source": "/ai-agency", "destination": "/ai-agency/index.html" }
   ]
 }
 ```
+
+**AI Agency 环境变量**（Vercel → Project → Settings → Environment Variables，Production 必填）：
+
+| 变量 | 说明 |
+|------|------|
+| `OPENAI_API_KEY` | 硅基流动 API Key |
+| `OPENAI_BASE_URL` | `https://api.siliconflow.cn/v1` |
+| `MODEL_NAME` | 如 `Qwen/Qwen2.5-7B-Instruct` |
+| `LLM_TEMPERATURE` | 可选，默认 `0.7` |
+
+本地 `.env` 已通过 CLI 同步至 **Production**；Preview/Development 可在 Vercel 控制台勾选相同变量。
 
 1. 在 [Vercel](https://vercel.com) Import 仓库 `qq8147830/live-panel`
 2. **Framework Preset**：Vite（或 Other，以 `vercel.json` 为准）
@@ -515,6 +550,7 @@ lsof -ti:3001 | xargs kill -9
 ```bash
 npm run build
 ls dist/teachzhao/index.html   # 必须存在
+ls dist/ai-agency/index.html   # 必须存在
 ```
 
 ### 通用发布
@@ -546,6 +582,13 @@ npm run server
 
 ## 版本与更新日志
 
+### [2.2.0] - 2026-06-16
+
+- 新增 **AI Agency 专家团**子模块，路径 `/ai-agency/`（169 专家 + NEXUS-Micro）
+- splash 启动页「AI Agency 专家团」入口按钮（TeachZhao 右侧）
+- Vite 插件 `scripts/ai-agency-plugin.js`，Vercel Python `api/ai-agency/[...path].py`
+- 新增脚本：`dev:ai-agency`；专家数据复制至 `ai-agency/data/agency-agents/`
+
 ### [2.1.1] - 2026-06-15
 
 - 修复 Vercel 上 `/teachzhao/` 404：根目录 `vercel.json` + `api/teachzhao/` Serverless
@@ -571,6 +614,7 @@ npm run server
 
 ## 相关文档
 
+- [ai-agency/READMECN.md](./ai-agency/READMECN.md) — AI Agency 专家团说明
 - [teachzhao/readme.md](./teachzhao/readme.md) — TeachZhao 详细说明
 - [teachzhao/TeachZhao产品解决方案.md](./teachzhao/TeachZhao产品解决方案.md) — 产品方案
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — 部署指南

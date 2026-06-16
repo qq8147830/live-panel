@@ -12,8 +12,21 @@
     {
       "source": "/teachzhao",
       "destination": "/teachzhao/index.html"
+    },
+    {
+      "source": "/ai-agency/api/:path*",
+      "destination": "/api/ai-agency/:path*"
+    },
+    {
+      "source": "/ai-agency",
+      "destination": "/ai-agency/index.html"
     }
   ],
+  "functions": {
+    "api/ai-agency/[...path].py": {
+      "maxDuration": 60
+    }
+  },
   "headers": [
     {
       "source": "/teachzhao/src/(.*)",
