@@ -24,7 +24,8 @@
   ],
   "functions": {
     "api/ai-agency/[...path].py": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "ai-agency/{registry/**,data/locale_zh.json,src/**,app/**,static/**}"
     }
   },
   "headers": [
