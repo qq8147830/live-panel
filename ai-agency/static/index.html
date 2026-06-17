@@ -101,7 +101,85 @@
     .micro-pipeline {
       display: flex;
       flex-direction: column;
+      gap: 0;
+      margin-top: 4px;
+    }
+    .micro-collab-summary {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .micro-collab-summary .collab-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .pipeline-stepbar .pipeline-step {
+      position: relative;
+      border: none;
+      background: transparent;
+      border-radius: 0;
+      padding: 0 0 18px 26px;
+      margin: 0;
+    }
+    .pipeline-stepbar .pipeline-step:last-child {
+      padding-bottom: 4px;
+    }
+    .pipeline-stepbar .pipeline-step::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--panel);
+      box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.12);
+      z-index: 1;
+    }
+    .pipeline-stepbar .pipeline-step::after {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 20px;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(79, 140, 255, 0.55), rgba(79, 140, 255, 0.12));
+    }
+    .pipeline-stepbar .pipeline-step:last-child::after {
+      display: none;
+    }
+    .pipeline-step .step-head {
+      display: flex;
+      align-items: center;
       gap: 8px;
+      margin-bottom: 6px;
+    }
+    .pipeline-step .phase-tag {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #dbeafe;
+      background: rgba(79, 140, 255, 0.22);
+      border: 1px solid rgba(79, 140, 255, 0.45);
+      border-radius: 6px;
+      padding: 2px 7px;
+      line-height: 1.4;
+    }
+    .pipeline-step .step-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .pipeline-step .step-body {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: 10px;
+      padding: 10px 12px;
     }
     .pipeline-step .step-num {
       display: inline-block;
@@ -331,8 +409,12 @@
       <div class="micro-brief-card">
         <div class="name">P1 事故响应</div>
         <div class="meta">描述事故现象与影响范围即可。系统将按固定流水线自动协作，完成后在右侧对话区一次性展示全部步骤结果。</div>
+        <div class="micro-collab-summary">
+          <div class="collab-title">P1–P4 四步协作说明</div>
+          <div class="meta">四位专家按固定顺序依次接手：上一步输出自动传入下一步上下文，形成「接警 → 缓解 → 根因 → 通报」闭环，最终在右侧汇总展示。</div>
+        </div>
       </div>
-      <div class="micro-pipeline" id="microPipeline"></div>
+      <div class="micro-pipeline pipeline-stepbar" id="microPipeline"></div>
     </div>
   </aside>
 
@@ -379,6 +461,28 @@
       'P1：生产环境 API 502，影响全部用户下单，15 分钟前开始',
       'P1：数据库主从延迟飙升，写入失败率 8%',
       'P1：CDN 缓存污染导致静态资源 404，多区域受影响',
+    ];
+    const MICRO_PHASE_META = [
+      {
+        phase: 'P1',
+        title: '接警定级',
+        desc: '确认事故、评估影响范围、判定严重等级，并制定即时响应计划。',
+      },
+      {
+        phase: 'P2',
+        title: '部署缓解',
+        desc: '基于指挥评估，提出回滚、缓解或部署动作及具体执行命令。',
+      },
+      {
+        phase: 'P3',
+        title: '根因修复',
+        desc: '调查后端/系统根因，提出修复方案与验证步骤。',
+      },
+      {
+        phase: 'P4',
+        title: '沟通通报',
+        desc: '起草面向用户的状态更新与内部干系人通报。',
+      },
     ];
 
     const state = {
@@ -692,16 +796,39 @@
     function renderMicroPipeline() {
       els.microPipeline.innerHTML = '';
       if (!state.pipeline.length) {
-        els.microPipeline.innerHTML = '<div class="pipeline-step"><div class="meta">加载流水线…</div></div>';
+        MICRO_PHASE_META.forEach((meta) => {
+          const item = document.createElement('div');
+          item.className = 'pipeline-step';
+          item.innerHTML = `
+            <div class="step-head">
+              <span class="phase-tag">${meta.phase}</span>
+              <span class="step-title">${escapeHtml(meta.title)}</span>
+            </div>
+            <div class="step-body">
+              <div class="meta">${escapeHtml(meta.desc)}</div>
+            </div>
+          `;
+          els.microPipeline.appendChild(item);
+        });
         return;
       }
-      state.pipeline.forEach((step) => {
+      state.pipeline.forEach((step, index) => {
+        const meta = MICRO_PHASE_META[index] || {
+          phase: `P${step.step}`,
+          title: step.role,
+          desc: step.action,
+        };
         const item = document.createElement('div');
         item.className = 'pipeline-step';
         item.innerHTML = `
-          <div class="step-num">Step ${step.step}</div>
-          <div class="name">${escapeHtml(step.agent_label || step.agent_name)}</div>
-          <div class="meta">${escapeHtml(step.role)}</div>
+          <div class="step-head">
+            <span class="phase-tag">${meta.phase}</span>
+            <span class="step-title">${escapeHtml(meta.title)}</span>
+          </div>
+          <div class="step-body">
+            <div class="name">${escapeHtml(step.agent_label || step.agent_name)}</div>
+            <div class="meta">${escapeHtml(meta.desc)}</div>
+          </div>
         `;
         els.microPipeline.appendChild(item);
       });
