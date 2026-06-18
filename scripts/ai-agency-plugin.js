@@ -39,6 +39,24 @@ function copyDirSync(src, dest) {
   }
 }
 
+function resolveAiAgencyApiPath(url) {
+  if (!url) return null
+  const [pathOnly, query = ''] = url.split('?')
+  const suffix = query ? `?${query}` : ''
+
+  if (pathOnly.startsWith('/ai-agency/api/') || pathOnly === '/ai-agency/api') {
+    const rest = pathOnly.replace(/^\/ai-agency/, '') || '/api'
+    return `${rest}${suffix}`
+  }
+
+  if (pathOnly.startsWith('/api/ai-agency/') || pathOnly === '/api/ai-agency') {
+    const rest = pathOnly.replace(/^\/api\/ai-agency/, '') || ''
+    return `/api${rest}${suffix}`
+  }
+
+  return null
+}
+
 function proxyApiRequest(req, res, apiPath) {
   const headers = { ...req.headers, host: `${AA_API_HOST}:${AA_API_PORT}` }
   delete headers['host']
@@ -64,7 +82,7 @@ function proxyApiRequest(req, res, apiPath) {
       res.end(
         JSON.stringify({
           detail:
-            'AI Agency API 未启动。请先运行: npm run dev:ai-agency'
+            'AI Agency API 未启动。请使用 npm run dev 一键启动，或另开终端运行 npm run dev:ai-agency'
         })
       )
     }
@@ -77,13 +95,13 @@ function createAiAgencyMiddleware() {
   return (req, res, next) => {
     const rawUrl = decodeURIComponent((req.url || '').split('?')[0])
 
-    if (!rawUrl.startsWith('/ai-agency')) return next()
-
-    if (rawUrl.startsWith('/ai-agency/api/')) {
-      const apiPath = (req.url || '').replace(/^\/ai-agency/, '') || '/'
+    const apiPath = resolveAiAgencyApiPath(req.url || '')
+    if (apiPath) {
       proxyApiRequest(req, res, apiPath)
       return
     }
+
+    if (!rawUrl.startsWith('/ai-agency')) return next()
 
     const relPath =
       rawUrl === '/ai-agency' || rawUrl === '/ai-agency/'

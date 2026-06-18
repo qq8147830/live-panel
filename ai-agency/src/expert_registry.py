@@ -177,8 +177,82 @@ class ExpertRegistry:
 
         return None
 
-    def search(self, query: str, top_k: int = 5) -> list[ExpertProfile]:
+    _KEYWORD_ROUTES: dict[str, list[str]] = {
+        "微博": ["marketing-weibo-strategist"],
+        "微信": ["engineering-wechat-mini-program-developer"],
+        "小红书": ["marketing-xiaohongshu-specialist"],
+        "bilibili": ["marketing-bilibili-content-strategist"],
+        "哔哩": ["marketing-bilibili-content-strategist"],
+        "前端": ["engineering-frontend-developer"],
+        "react": ["engineering-frontend-developer"],
+        "vue": ["engineering-frontend-developer"],
+        "性能": ["engineering-frontend-developer", "engineering-sre"],
+        "后端": ["engineering-backend-architect"],
+        "devops": ["engineering-devops-automator"],
+        "产品": ["product-manager", "product-trend-researcher"],
+        "mvp": ["engineering-rapid-prototyper", "product-manager"],
+        "saas": ["product-manager", "engineering-backend-architect"],
+        "营销": ["marketing-growth-hacker", "marketing-content-creator"],
+        "增长": ["marketing-growth-hacker"],
+        "设计": ["design-brand-guardian", "design-ui-designer"],
+        "测试": ["testing-accessibility-auditor", "specialized-model-qa"],
+        "安全": ["engineering-security-engineer"],
+        "事故": ["engineering-incident-response-commander"],
+        "incident": ["engineering-incident-response-commander"],
+    }
+
+    _FALLBACK_EXPERT_IDS: tuple[str, ...] = (
+        "agents-orchestrator",
+        "product-manager",
+        "engineering-senior-developer",
+    )
+
+    def _tokenize_query(self, query: str) -> list[str]:
         query_lower = query.lower()
+        tokens: list[str] = []
+        seen: set[str] = set()
+
+        def add(token: str) -> None:
+            token = token.strip().lower()
+            if len(token) < 2 or token in seen:
+                return
+            seen.add(token)
+            tokens.append(token)
+
+        for chunk in re.split(r"[\s,，。！？!?;；:：/\\|]+", query_lower):
+            if not chunk:
+                continue
+            add(chunk)
+            if re.search(r"[\u4e00-\u9fff]", chunk) and len(chunk) > 2:
+                for idx in range(len(chunk) - 1):
+                    add(chunk[idx : idx + 2])
+
+        for token in re.findall(r"[a-z0-9]+", query_lower):
+            add(token)
+
+        return tokens
+
+    def fallback_expert(self) -> ExpertProfile:
+        for expert_id in self._FALLBACK_EXPERT_IDS:
+            expert = self.get(expert_id)
+            if expert:
+                return expert
+        if not self.experts:
+            raise ValueError("Expert registry is empty.")
+        return self.experts[0]
+
+    def search(self, query: str, top_k: int = 5) -> list[ExpertProfile]:
+        query_lower = query.lower().strip()
+        if not query_lower:
+            return [self.fallback_expert()]
+
+        for keyword, expert_ids in self._KEYWORD_ROUTES.items():
+            if keyword in query_lower:
+                for expert_id in expert_ids:
+                    expert = self.get(expert_id)
+                    if expert:
+                        return [expert]
+
         scored: list[tuple[int, ExpertProfile]] = []
 
         for expert in self.experts:
@@ -195,14 +269,17 @@ class ExpertRegistry:
                 ]
             ).lower()
             score = 0
-            for token in re.findall(r"[\w\u4e00-\u9fff]+", query_lower):
+            for token in self._tokenize_query(query_lower):
                 if token in haystack:
                     score += 3 if token in expert.name.lower() or token in name_zh else 1
             if score > 0:
                 scored.append((score, expert))
 
-        scored.sort(key=lambda item: item[0], reverse=True)
-        return [expert for _, expert in scored[:top_k]]
+        if scored:
+            scored.sort(key=lambda item: item[0], reverse=True)
+            return [expert for _, expert in scored[:top_k]]
+
+        return [self.fallback_expert()]
 
     def resolve_prompt_path(self, expert: ExpertProfile) -> Path:
         path = Path(expert.file_path)

@@ -170,6 +170,44 @@ let state = {
   loggedIn: false
 };
 
+const LIVE_PANEL_SESSION_KEY = "live-panel-session-v1";
+
+function persistLivePanelSession() {
+  if (!state.loggedIn) return;
+  try {
+    localStorage.setItem(LIVE_PANEL_SESSION_KEY, JSON.stringify({
+      loggedIn: true,
+      phone: "",
+      displayName: state.user.name,
+      name: state.user.name,
+      email: state.user.email,
+      balance: state.user.balance,
+      frozen: state.user.frozen,
+      id: state.user.id,
+      loginMethod: "teachzhao",
+    }));
+  } catch (_) {}
+}
+
+function hydrateLivePanelSession() {
+  try {
+    const raw = localStorage.getItem(LIVE_PANEL_SESSION_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data.loggedIn) return;
+    state.loggedIn = true;
+    state.user = {
+      name: data.name || data.displayName || "用户",
+      email: data.email || "user@live-panel.local",
+      id: data.id || "usr_guest",
+      balance: typeof data.balance === "number" ? data.balance : 10.00,
+      frozen: data.frozen || 0,
+    };
+  } catch (_) {}
+}
+
+hydrateLivePanelSession();
+
 const app = document.querySelector("#app");
 
 function icon(name) {
@@ -810,6 +848,7 @@ function bindEvents() {
     event.preventDefault();
     state.loggedIn = false;
     state.user = { name: "hh101", email: "demo@teachzhao.ai", id: "usr_27908a2c3d6f", balance: 3, frozen: 0 };
+    try { localStorage.removeItem(LIVE_PANEL_SESSION_KEY); } catch (_) {}
     location.hash = "/";
   });
   document.querySelector("[data-login-form]")?.addEventListener("submit", async (event) => {
@@ -827,6 +866,7 @@ function bindEvents() {
     }
     state.user = data.user;
     state.loggedIn = true;
+    persistLivePanelSession();
     location.hash = "/agents";
   });
   document.querySelectorAll("[data-social-login]").forEach((btn) => btn.addEventListener("click", () => {
@@ -856,6 +896,7 @@ function bindEvents() {
           const data = await response.json();
           state.user = data.user;
           state.loggedIn = true;
+          persistLivePanelSession();
           overlay.style.display = "none";
           location.hash = "/agents";
         }, 800);

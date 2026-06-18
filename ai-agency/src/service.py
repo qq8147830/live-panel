@@ -53,7 +53,8 @@ class AgencyService:
             return agent, False
         matches = self.registry.search(message, top_k=1)
         if not matches:
-            raise ValueError("No matching expert found.")
+            agent = factory.get(self.registry.fallback_expert().id)
+            return agent, True
         agent = factory.get(matches[0].id)
         return agent, True
 

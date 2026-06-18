@@ -205,6 +205,114 @@
       gap: 12px;
       flex-wrap: wrap;
     }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+    .user-session { position: relative; flex-shrink: 0; }
+    .user-session .user-guest { display: inline-flex; }
+    .user-session .user-logged { display: none; }
+    .user-session.is-authenticated .user-guest { display: none !important; }
+    .user-session.is-authenticated .user-logged { display: block; }
+    .user-guest {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid rgba(102, 126, 234, 0.35);
+      border-radius: 20px;
+      background: rgba(10, 14, 39, 0.55);
+      color: #9cc9f2;
+      font-size: 13px;
+      text-decoration: none;
+      transition: background 0.2s ease;
+    }
+    .user-guest:hover { background: rgba(255, 255, 255, 0.08); }
+    .user-logged { position: relative; }
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px 6px 6px;
+      border: 1px solid rgba(102, 126, 234, 0.35);
+      border-radius: 999px;
+      background: rgba(10, 14, 39, 0.88);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .user-chip:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(102, 126, 234, 0.55);
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #445dcc 0%, #1b7811 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.35);
+      flex-shrink: 0;
+    }
+    .user-name {
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 180px;
+      background: rgba(10, 14, 39, 0.98);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+      z-index: 20;
+    }
+    .user-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .user-dropdown button {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+    .user-dropdown button:hover { background: rgba(102, 126, 234, 0.18); }
+    .user-dropdown button.danger { color: #ff8a8a; }
+    .user-dropdown button.danger:hover { background: rgba(255, 107, 107, 0.12); }
+    .user-dropdown-divider {
+      height: 1px;
+      margin: 4px 12px;
+      background: rgba(102, 126, 234, 0.2);
+    }
     .status { color: var(--muted); font-size: 13px; }
     .thinking-toggle {
       display: flex;
@@ -424,19 +532,35 @@
         <strong id="modeLabel">单专家模式</strong>
         <div class="status" id="statusText">正在连接...</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="topbar-actions">
         <div class="thinking-toggle" id="thinkingToggle">
           <button type="button" data-mode="fast" class="active">快速模式</button>
           <button type="button" data-mode="deep">深度思考</button>
         </div>
         <div class="status" id="selectedExpert">自动路由</div>
+        <div class="user-session" id="userSession">
+          <a class="user-guest" id="userGuest" href="/splash.html">👤 未登录</a>
+          <div class="user-logged" id="userLogged">
+            <button type="button" class="user-chip" id="userChip" aria-haspopup="true" aria-expanded="false">
+              <span class="user-avatar" id="userAvatar">U</span>
+              <span class="user-name" id="userName">用户</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="user-dropdown" id="userDropdown">
+              <button type="button" data-user-action="profile">个人资料</button>
+              <button type="button" data-user-action="balance" id="userBalanceBtn">我的余额 · $10.00</button>
+              <div class="user-dropdown-divider"></div>
+              <button type="button" class="danger" data-user-action="logout">退出</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="messages" id="messages"></div>
     <div class="example-chips" id="exampleChips"></div>
     <div class="hint" id="hintText">单专家模式：不选专家时将自动路由。</div>
     <div class="composer">
-      <textarea id="input" placeholder="输入你的问题或事故描述..."></textarea>
+      <textarea id="input" placeholder="输入你的问题描述..."></textarea>
       <div class="composer-actions">
         <button id="sendBtn" type="button">发送</button>
         <button id="cancelBtn" type="button" class="secondary" hidden>取消</button>
@@ -452,6 +576,7 @@
     })();
 
     const STORAGE_KEY = 'ai-agency-state-v1';
+    const LIVE_PANEL_SESSION_KEY = 'live-panel-session-v1';
     const CHAT_EXAMPLES = [
       '帮我设计一个 SaaS 产品的 MVP 功能清单',
       '微博运营策略：新品牌冷启动怎么做？',
@@ -492,7 +617,8 @@
       thinkingMode: 'fast',
       loading: false,
       pipeline: [],
-      messages: [],
+      chatMessages: [],
+      microMessages: [],
       abortController: null,
       waitTimer: null,
       lastFailedRequest: null,
@@ -519,14 +645,27 @@
       hintText: document.getElementById('hintText'),
       exampleChips: document.getElementById('exampleChips'),
       thinkingToggle: document.getElementById('thinkingToggle'),
+      userSession: document.getElementById('userSession'),
+      userGuest: document.getElementById('userGuest'),
+      userLogged: document.getElementById('userLogged'),
+      userChip: document.getElementById('userChip'),
+      userAvatar: document.getElementById('userAvatar'),
+      userName: document.getElementById('userName'),
+      userDropdown: document.getElementById('userDropdown'),
+      userBalanceBtn: document.getElementById('userBalanceBtn'),
     };
+
+    function currentMessages() {
+      return state.mode === 'micro' ? state.microMessages : state.chatMessages;
+    }
 
     function saveState() {
       const payload = {
         mode: state.mode,
         thinkingMode: state.thinkingMode,
         selectedExpertId: state.selectedExpertId,
-        messages: state.messages.slice(-40),
+        chatMessages: state.chatMessages.slice(-80),
+        microMessages: state.microMessages.slice(-80),
       };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (_) {}
     }
@@ -539,8 +678,60 @@
         if (data.thinkingMode) state.thinkingMode = data.thinkingMode;
         if (data.mode) state.mode = data.mode;
         if (data.selectedExpertId) state.selectedExpertId = data.selectedExpertId;
-        if (Array.isArray(data.messages)) state.messages = data.messages;
+        if (Array.isArray(data.chatMessages)) state.chatMessages = data.chatMessages;
+        else if (Array.isArray(data.messages)) state.chatMessages = data.messages;
+        if (Array.isArray(data.microMessages)) state.microMessages = data.microMessages;
       } catch (_) {}
+    }
+
+    function readLivePanelSession() {
+      try {
+        const raw = localStorage.getItem(LIVE_PANEL_SESSION_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function renderUserSession() {
+      const session = readLivePanelSession();
+      const loggedIn = Boolean(session?.loggedIn);
+      els.userSession.classList.toggle('is-authenticated', loggedIn);
+      if (!loggedIn) {
+        closeUserDropdown();
+        return;
+      }
+
+      const name = session.name || session.displayName || session.phone || '用户';
+      const initial = String(name).trim().charAt(0).toUpperCase() || 'U';
+      const balance = typeof session.balance === 'number' ? session.balance : 10.00;
+      els.userAvatar.textContent = initial;
+      els.userName.textContent = name;
+      els.userBalanceBtn.textContent = `我的余额 · $${balance.toFixed(2)}`;
+    }
+
+    function toggleUserDropdown(event) {
+      event?.stopPropagation();
+      const open = els.userDropdown.classList.toggle('show');
+      els.userChip?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function closeUserDropdown() {
+      els.userDropdown?.classList.remove('show');
+      els.userChip?.setAttribute('aria-expanded', 'false');
+    }
+
+    function handleUserAction(action) {
+      closeUserDropdown();
+      const accountUrl = `${window.location.origin}/teachzhao/#/account`;
+      if (action === 'profile' || action === 'balance') {
+        window.open(accountUrl, '_blank');
+        return;
+      }
+      if (action === 'logout') {
+        try { localStorage.removeItem(LIVE_PANEL_SESSION_KEY); } catch (_) {}
+        window.location.href = '/splash.html';
+      }
     }
 
     function escapeHtml(text) {
@@ -635,17 +826,22 @@
     }
 
     function appendToHistory(role, content, extra = {}) {
-      state.messages.push({ role, content, ...extra });
+      currentMessages().push({ role, content, ...extra });
       saveState();
     }
 
     function renderMessagesFromState() {
       els.messages.innerHTML = '';
-      if (!state.messages.length) showWelcome();
-      else state.messages.forEach((item) => {
+      const items = currentMessages();
+      if (!items.length) {
+        showWelcome();
+        return;
+      }
+      items.forEach((item) => {
         if (item.role === 'user') addMessage('user', item.content, { persist: false });
         else addMessage('assistant', item.content, { persist: false, badge: item.badge, meta: item.meta });
       });
+      els.messages.scrollTop = els.messages.scrollHeight;
     }
 
     function showWelcome() {
@@ -922,6 +1118,7 @@
         els.selectedExpert.textContent = 'incident-response / P1';
       }
       renderExampleChips();
+      renderMessagesFromState();
       saveState();
     }
 
@@ -1161,6 +1358,16 @@
     els.thinkingToggle.querySelectorAll('button').forEach((btn) => {
       btn.onclick = () => setThinkingMode(btn.dataset.mode);
     });
+    els.userChip?.addEventListener('click', toggleUserDropdown);
+    els.userDropdown?.querySelectorAll('[data-user-action]').forEach((btn) => {
+      btn.addEventListener('click', () => handleUserAction(btn.dataset.userAction));
+    });
+    document.addEventListener('click', (event) => {
+      if (!els.userSession?.contains(event.target)) closeUserDropdown();
+    });
+    window.addEventListener('storage', (event) => {
+      if (event.key === LIVE_PANEL_SESSION_KEY) renderUserSession();
+    });
     els.input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -1171,6 +1378,7 @@
     async function init() {
       loadState();
       renderThinkingToggle();
+      renderUserSession();
       await loadHealth();
       const healthRes = await fetch(`${API_BASE}/health`);
       const health = await healthRes.json();
@@ -1187,8 +1395,6 @@
       });
       await Promise.all([loadExperts(), loadPipeline()]);
       setMode(state.mode);
-      if (state.messages.length) renderMessagesFromState();
-      else showWelcome();
     }
 
     init();

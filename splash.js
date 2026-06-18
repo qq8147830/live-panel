@@ -69,12 +69,10 @@ function log(message, type = 'info') {
 const LoginState = {
   isLoggedIn: false,
   currentPhone: '',
-  
-  /**
-   * 脱敏手机号
-   * @param {string} phone - 原始手机号
-   * @returns {string} 脱敏后的手机号
-   */
+  displayName: '',
+
+  SESSION_KEY: 'live-panel-session-v1',
+
   maskPhone: function(phone) {
     if (!phone || phone.length !== 11) return '***********';
     return phone.substring(0, 3) + '****' + phone.substring(7);
@@ -84,11 +82,41 @@ const LoginState = {
    * 执行登录
    * @param {string} phone - 手机号
    */
-  doLogin: function(phone) {
+  doLogin: function(phone, profile = {}) {
     this.isLoggedIn = true;
     this.currentPhone = phone;
+    this.displayName = profile.name || this.maskPhone(phone);
+    this.persistSession(profile);
     log('用户登录成功: ' + phone);
     this.updateUI();
+  },
+
+  persistSession: function(profile = {}) {
+    try {
+      localStorage.setItem(this.SESSION_KEY, JSON.stringify({
+        loggedIn: true,
+        phone: this.currentPhone,
+        displayName: profile.name || this.maskPhone(this.currentPhone),
+        name: profile.name || this.maskPhone(this.currentPhone),
+        email: profile.email || (this.currentPhone ? `${this.currentPhone}@live-panel.local` : ''),
+        balance: profile.balance ?? 10.00,
+        frozen: 0,
+        id: profile.id || `usr_${String(this.currentPhone || 'guest').slice(-8)}`,
+        loginMethod: profile.loginMethod || 'phone',
+      }));
+    } catch (_) {}
+  },
+
+  restoreSession: function() {
+    try {
+      const raw = localStorage.getItem(this.SESSION_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data.loggedIn) return;
+      this.isLoggedIn = true;
+      this.currentPhone = data.phone || '';
+      this.displayName = data.displayName || data.name || this.maskPhone(this.currentPhone);
+    } catch (_) {}
   },
   
   /**
@@ -97,6 +125,8 @@ const LoginState = {
   doLogout: function() {
     this.isLoggedIn = false;
     this.currentPhone = '';
+    this.displayName = '';
+    try { localStorage.removeItem(this.SESSION_KEY); } catch (_) {}
     log('用户已登出');
     this.closeDropdown();
     this.updateUI();
@@ -117,7 +147,7 @@ const LoginState = {
       loginBtn.style.display = 'none';
       loggedInStatus.style.display = 'flex';
       if (maskedPhone) {
-        maskedPhone.textContent = this.maskPhone(this.currentPhone);
+        maskedPhone.textContent = this.displayName || this.maskPhone(this.currentPhone);
       }
     } else {
       // 显示未登录状态
@@ -159,17 +189,18 @@ const LoginState = {
   handleMenuItem: function(action) {
     switch (action) {
       case 'profile':
-        log('点击了账户资料');
-        showToast('账户资料功能开发中...');
+        log('打开账户资料');
+        window.open('/teachzhao/#/account', '_blank');
         break;
       case 'settings':
-        log('点击了设置');
-        showToast('设置功能开发中...');
+        log('打开账户余额');
+        window.open('/teachzhao/#/account', '_blank');
         break;
       case 'logout':
         log('执行退出登录');
         this.doLogout();
         showToast('已退出登录');
+        window.location.href = '/splash.html';
         break;
     }
     this.closeDropdown();
@@ -208,8 +239,8 @@ function updateLoginStatusUI() {
   LoginState.updateUI();
 }
 
-function doLogin(phone) {
-  LoginState.doLogin(phone);
+function doLogin(phone, profile) {
+  LoginState.doLogin(phone, profile || {});
 }
 
 function doLogout() {
@@ -766,7 +797,7 @@ function toggleLoginModal() {
             name: '微信用户'
           };
           
-          doLogin(mockWechatUser.phone);
+          doLogin(mockWechatUser.phone, { name: mockWechatUser.name, loginMethod: 'wechat' });
           showToast('微信登录成功', 'success');
           
           // 关闭所有弹窗
@@ -1249,6 +1280,7 @@ function init() {
   initLoginModal();
   
   // 初始化登录状态管理
+  LoginState.restoreSession();
   LoginState.initClickOutside();
   updateLoginStatusUI();
   
